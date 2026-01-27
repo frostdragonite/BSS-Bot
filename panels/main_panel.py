@@ -36,14 +36,14 @@ PANEL_ORDER = [
         "module": "station_memory",
         "class": "StationMemoryView"
     },
-    {
-        "module": "station_base",
-        "class": "StationBaseView"
-    },
-    {
-        "module": "station_beesmas",
-        "class": "StationBeesmasView"
-    }
+    # {
+    #     "module": "station_base",
+    #     "class": "StationBaseView"
+    # },
+    # {
+    #     "module": "station_beesmas",
+    #     "class": "StationBeesmasView"
+    # }
 ]
 
 # ===========================================================================

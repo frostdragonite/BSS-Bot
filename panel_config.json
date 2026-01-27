@@ -1,3 +1,100 @@
 {
-    "destination_channel_id": 763048569606504471
+  "destination_channel_id": 763048569606504471,
+  "panels": {
+    "planter_caustic": {
+      "channel_id": 1464283169820774421,
+      "message_id": 1465323813008048415
+    },
+    "station_beesmas": {
+      "channel_id": 1464283169820774421,
+      "message_id": 1465579879150915617
+    },
+    "planter_special": {
+      "channel_id": 1464283169820774421,
+      "message_id": 1465771708718780638
+    }
+  },
+  "reminders": {
+    "planter_caustic": {
+      "606483460348968971:Candy": {
+        "user_id": "606483460348968971",
+        "username": "timeabler",
+        "item": "Candy",
+        "reminder_time": "2026-03-04T16:13:44.834224",
+        "channel_id": "763048569606504471",
+        "created_at": "2026-01-27T16:13:44.834255",
+        "cooldown": {
+          "days": 36,
+          "hours": 0,
+          "minutes": 0
+        }
+      },
+      "606483460348968971:Plastic": {
+        "user_id": "606483460348968971",
+        "username": "timeabler",
+        "item": "Plastic",
+        "reminder_time": "2026-03-04T16:13:51.698493",
+        "channel_id": "763048569606504471",
+        "created_at": "2026-01-27T16:13:51.698523",
+        "cooldown": {
+          "days": 36,
+          "hours": 0,
+          "minutes": 0
+        }
+      },
+      "606483460348968971:Tacky": {
+        "user_id": "606483460348968971",
+        "username": "timeabler",
+        "item": "Tacky",
+        "reminder_time": "2026-03-04T16:13:54.180151",
+        "channel_id": "763048569606504471",
+        "created_at": "2026-01-27T16:13:54.180177",
+        "cooldown": {
+          "days": 36,
+          "hours": 0,
+          "minutes": 0
+        }
+      },
+      "606483460348968971:Blue Clay": {
+        "user_id": "606483460348968971",
+        "username": "timeabler",
+        "item": "Blue Clay",
+        "reminder_time": "2026-03-04T16:14:03.446444",
+        "channel_id": "763048569606504471",
+        "created_at": "2026-01-27T16:14:03.446453",
+        "cooldown": {
+          "days": 36,
+          "hours": 0,
+          "minutes": 0
+        }
+      },
+      "606483460348968971:Hydroponic": {
+        "user_id": "606483460348968971",
+        "username": "timeabler",
+        "item": "Hydroponic",
+        "reminder_time": "2026-03-04T16:14:05.197307",
+        "channel_id": "763048569606504471",
+        "created_at": "2026-01-27T16:14:05.197334",
+        "cooldown": {
+          "days": 36,
+          "hours": 0,
+          "minutes": 0
+        }
+      },
+      "606483460348968971:Red Clay": {
+        "user_id": "606483460348968971",
+        "username": "timeabler",
+        "item": "Red Clay",
+        "reminder_time": "2026-03-04T16:14:06.789979",
+        "channel_id": "763048569606504471",
+        "created_at": "2026-01-27T16:14:06.790007",
+        "cooldown": {
+          "days": 36,
+          "hours": 0,
+          "minutes": 0
+        }
+      }
+    },
+    "station_base": {}
+  }
 }

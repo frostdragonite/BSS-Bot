@@ -13,10 +13,10 @@ class MyBot(commands.Bot):
         super().__init__(command_prefix="jick ", intents=intents)
 
     async def setup_hook(self):
-        # Load commands from the cogs folder
-        for file in os.listdir("./cogs"):
-            if file.endswith(".py") and not file.startswith("__"):
-                await self.load_extension(f"cogs.{file[:-3]}")
+        # Load core reminder checker service first
+        from core.reminder_service import get_reminder_checker
+        reminder_checker = get_reminder_checker(self)
+        await self.add_cog(reminder_checker)
         
         # Load panels from the panels folder
         for file in os.listdir("./panels"):
