@@ -67,12 +67,12 @@ class PlanterCausticView(discord.ui.View):
         
         embed.add_field(
           name="\u200b",
-              value=(
-                  "<:planter_plastic:1462393814911029271> → <:field_rose:1464671421861986420> Rose\n"
-                  "<:planter_candy:1462393769801289840> → <:field_mountain:1464671464996208947> Mountain\n"
-                  "<:planter_tacky:1462393832820965520> → <:field_bamboo:1464671229167407187> Bamboo\n"
-                  "<:planter_pesticide:1462393806803697897> → <:field_bamboo:1464671229167407187> or <:field_strawberry:1464671115786850476>"
-              ),
+          value=(
+              "<:planter_plastic:1462393814911029271> → <:field_rose:1464671421861986420> Rose\n"
+              "<:planter_candy:1462393769801289840> → <:field_mountain:1464671464996208947> Mountain\n"
+              "<:planter_tacky:1462393832820965520> → <:field_bamboo:1464671229167407187> Bamboo\n"
+              "<:planter_pesticide:1462393806803697897> → <:field_bamboo:1464671229167407187> or <:field_strawberry:1464671115786850476>"
+          ),
           inline=True
         )
         embed.add_field(

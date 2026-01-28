@@ -67,28 +67,31 @@ class StationBaseView(discord.ui.View):
         
         embed.add_field(
           name="Row 1",
-              value=(
-                  "`1 Hour` <:sticker_hourglass:1465022845800157255> Wealth Clock\n"
-                  "`4 Hours` <:token_honey:1465023103477219329> Honey Storm\n"
-                  "`16 Hours` <:sticker_sprout:1465023224143282417> Special Sprout\n"
-                  "`22 Hours` ☄️ Mythic Meteor"
-              ),
+          value=(
+              "`1 Hour` <:sticker_hourglass:1465022845800157255> Wealth Clock\n"
+              "`4 Hours` <:token_honey:1465023103477219329> Honey Storm\n"
+              "`16 Hours` <:sticker_sprout:1465023224143282417> Special Sprout\n"
+              "`22 Hours` ☄️ Mythic Meteor"
+          ),
+          inline=False
         )
         embed.add_field(
           name="Row 2",
-              value=(
-                  "`1 Hour` <:item_spiritpetal:1465024160467255347> Wind Shrine\n"
-                  "`1 Hour` 🖨️ Sticker Printer"
-              ),
+          value=(
+              "`1 Hour` <:item_spiritpetal:1465024160467255347> Wind Shrine\n"
+              "`1 Hour` 🖨️ Sticker Printer"
+          ),
+          inline=False
         )
         embed.add_field(
           name="Row 3",
-              value=(
-                  "`4 Hours` <:item_spiritpetal:1465024160467255347> Wind Shrine\n"
-                  "`22 Hour` <:item_glue:1464852440527405056> Glue Dispenser"
-                  "`2 Hour` <:item_antpass:1465771181176258757> Ant Pass Dispenser"
-                  "`22 Hour` <:item_robopass:1465771250046468097> Robo Pass Dispenser"
-              ),
+          value=(
+              "`4 Hours` <:item_spiritpetal:1465024160467255347> Wind Shrine\n"
+              "`22 Hour` <:item_glue:1464852440527405056> Glue Dispenser\n"
+              "`2 Hour` <:item_antpass:1465771181176258757> Ant Pass Dispenser\n"
+              "`22 Hour` <:item_robopass:1465771250046468097> Robo Pass Dispenser"
+          ),
+          inline=False
         )
         
         return embed

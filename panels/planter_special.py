@@ -68,33 +68,39 @@ class PlanterSpecialView(discord.ui.View):
 
         embed.add_field(
           name="Row 1",
-              value=(
-                  "`36 Days` <:item_smoothie:1464852505992106079> \+ <:plasticplanter:926225586244960359> → Any Fields\n"
-                  "`14 Days` <:item_glue:1464852440527405056> \+ <:candyplanter:926225430174900224> → <:field_stump:1464670339756982363> x 3\n"
-                  "`14 Days` <:item_stinger:1464852541073522698> \+ <:planter_redclay:1462393818480381952> → <:field_clover:1464671060011122883> → <:field_spider:1464671182182682840> → <:field_cactus:1464671315138187596>"
-              ),
+          value=(
+              "`36 Days` <:item_smoothie:1464852505992106079> \+ <:planter_plastic:1462393814911029271> → Any Fields\n"
+              "`14 Days` <:item_glue:1464852440527405056> \+ <:planter_candy:1462393769801289840> → <:field_stump:1464670339756982363> x 3\n"
+              "`14 Days` <:item_stinger:1464852541073522698> \+ <:planter_redclay:1462393818480381952> → <:field_clover:1464671060011122883> → <:field_spider:1464671182182682840> → <:field_cactus:1464671315138187596>"
+          ),
+          inline=False
         )
         embed.add_field(
           name="Row 2",
-              value=(
-                  "`30 Days` <:item_loadeddice:1464852480851706060> \+ <:planter_tacky:1462393832820965520> → <:field_mountain:1464671464996208947>\n"
-                  "`⠀7 Days` <:item_neonberry:1464852580160241837> \+ <:planter_pesticide:1462393806803697897> → <:field_stump:1464670339756982363> → <:field_mountain:1464671464996208947> → <:field_coconut:1464671533837451325>"
-              ),
+          value=(
+              "`30 Days` <:item_loadeddice:1464852480851706060> \+ <:planter_tacky:1462393832820965520> → <:field_mountain:1464671464996208947>\n"
+              "`⠀7 Days` <:item_neonberry:1464852580160241837> \+ <:planter_pesticide:1462393806803697897> → <:field_stump:1464670339756982363> → <:field_mountain:1464671464996208947> → <:field_coconut:1464671533837451325>"
+          ),
+          inline=False
         )
         embed.add_field(
           name="Row 3",
-              value=(
-                  "`30 Days` <:item_redextract:1464852356419158303> \+ <:heattreatplanter:926225491403354112> → <:field_mushroom:1464670962833428768> → <:field_strawberry:1464671115786850476> → <:field_rose:1464671421861986420> → <:field_pepper:1464671501432389682>\n"
-                  "`30 Days` <:item_enzyme:1464852397892309005> \+ <:heattreatplanter:926225491403354112> → <:field_pineapple:1464671271286472978> x 3"
-              ),
+          value=(
+              "`30 Days` <:item_redextract:1464852356419158303> \+ <:planter_heattreated:1462393789447536862> → <:field_mushroom:1464670962833428768> → <:field_strawberry:1464671115786850476> → <:field_rose:1464671421861986420> → <:field_pepper:1464671501432389682>\n"
+              "`30 Days` <:item_enzyme:1464852397892309005> \+ <:planter_heattreated:1462393789447536862> → <:field_pineapple:1464671271286472978> x 3"
+          ),
+          inline=False
         )
         embed.add_field(
           name="Row 4",
-              value=(
-                  "`30 Days` <:item_blueextract:1464852380582674719> \+ <:planter_hydroponic:1462393792832208927> → <:field_blueflower:1464671010711408742> → <:field_bamboo:1464671229167407187> → <:field_pinetree:1464671389737943142> → <:field_stump:1464670339756982363>\n"
-                  "`30 Days` <:item_oil:1464852420818374770> \+ <:planter_hydroponic:1462393792832208927> → <:field_sunflower:1464670823863550095> x 3"
-              ),
+          value=(
+              "`30 Days` <:item_blueextract:1464852380582674719> \+ <:planter_hydroponic:1462393792832208927> → <:field_blueflower:1464671010711408742> → <:field_bamboo:1464671229167407187> → <:field_pinetree:1464671389737943142> → <:field_stump:1464670339756982363>\n"
+              "`30 Days` <:item_oil:1464852420818374770> \+ <:planter_hydroponic:1462393792832208927> → <:field_sunflower:1464670823863550095> x 3"
+          ),
+          inline=False
         )
+
+        return embed
 
 
     # Row 1: 4 buttons

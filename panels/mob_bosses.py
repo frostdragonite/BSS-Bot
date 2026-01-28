@@ -64,12 +64,13 @@ class MobBossesView(discord.ui.View):
         
         embed.add_field(
           name="Row 1",
-              value=(
-                  "`1 Day` 🐞 King Beetle\n"
-                  "`2 Days` <:sticker_stretchedbear:1465765080468558090> Tunnel Bear\n"
-                  "`1 Day 12 Hours` 🦀 Coconut Crab\n"
-                  "`4 Days` <:sticker_snail:1465765046301757555> Stump Snail"
-              ),
+          value=(
+              "`1 Day` 🐞 King Beetle\n"
+              "`2 Days` <:sticker_stretchedbear:1465765080468558090> Tunnel Bear\n"
+              "`1 Day 12 Hours` 🦀 Coconut Crab\n"
+              "`4 Days` <:sticker_snail:1465765046301757555> Stump Snail"
+          ),
+          inline=False
         )
         embed.add_field(
           name="Row 2",
@@ -77,6 +78,7 @@ class MobBossesView(discord.ui.View):
             "`30 mins` <:sticker_tnt:1465765003792748697> Commando Chick\n"
             "`1 Days 12 Hours` <:sticker_nymph:1465764975778861178> Stickbug"
           ),
+          inline=False
         )
 
         return embed

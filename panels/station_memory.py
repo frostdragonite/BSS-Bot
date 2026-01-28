@@ -62,13 +62,14 @@ class StationMemoryView(discord.ui.View):
         
         embed.add_field(
           name="\u200b",
-              value=(
-                  "`2 Hours` <:item_royaljelly:1464986308639326373> Normal MM: <:honey:1462393791104155744> 25k\n"
-                  "`4 Hours` <:icon_badge:1464996867376152764> Mega MM: <:honey:1462393791104155744> 500k\n"
-                  "`8 Hours` <:item_mooncharm:1464990091721314304> Night MM: <:honey:1462393791104155744> 5M\n"
-                  "`8 Hours` <:item_cloudvial:1464990525122940948> Extreme MM: <:honey:1462393791104155744> 25B\n"
-                  "`4 Hours` <:item_gingerbread:1464992612892147722> Winter MM: <:item_snowflake:1465027529684553758> 100"
+          value=(
+              "`2 Hours` <:item_royaljelly:1464986308639326373> Normal MM: <:honey:1462393791104155744> 25k\n"
+              "`4 Hours` <:icon_badge:1464996867376152764> Mega MM: <:honey:1462393791104155744> 500k\n"
+              "`8 Hours` <:item_mooncharm:1464990091721314304> Night MM: <:honey:1462393791104155744> 5M\n"
+              "`8 Hours` <:item_cloudvial:1464990525122940948> Extreme MM: <:honey:1462393791104155744> 25B\n"
+              "`4 Hours` <:item_gingerbread:1464992612892147722> Winter MM: <:item_snowflake:1465027529684553758> 100"
               ),
+          inline=False
         )
         
         return embed
@@ -179,7 +180,7 @@ class StationMemory(commands.Cog):
         self.bot = bot
         # Register this panel's reminder service with the global checker
         reminder_checker = get_reminder_checker(bot)
-        reminder_checker.register_service("planter_caustic", reminder_service)
+        reminder_checker.register_service("station_memory", reminder_service)
 
     #? --------------- Setup Panel Command ---------------
     @discord.app_commands.command(name="setup-panel-station-memory", description="Set up the Memory Match station panel")

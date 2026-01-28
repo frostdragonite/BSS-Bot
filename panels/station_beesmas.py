@@ -194,7 +194,7 @@ class StationBeesmas(commands.Cog):
         self.bot = bot
         # Register this panel's reminder service with the global checker
         reminder_checker = get_reminder_checker(bot)
-        reminder_checker.register_service("station_base", reminder_service)
+        reminder_checker.register_service("station_beesmas", reminder_service)
 
     #? --------------- Setup Panel Command ---------------
     @discord.app_commands.command(name="setup-panel-station-beesmas", description="Set up the Beesmas Station panel")

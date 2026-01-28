@@ -1,19 +1,6 @@
 {
   "destination_channel_id": 763048569606504471,
-  "panels": {
-    "planter_caustic": {
-      "channel_id": 1464283169820774421,
-      "message_id": 1465323813008048415
-    },
-    "station_beesmas": {
-      "channel_id": 1464283169820774421,
-      "message_id": 1465579879150915617
-    },
-    "planter_special": {
-      "channel_id": 1464283169820774421,
-      "message_id": 1465771708718780638
-    }
-  },
+  "panels": {},
   "reminders": {
     "planter_caustic": {
       "606483460348968971:Candy": {

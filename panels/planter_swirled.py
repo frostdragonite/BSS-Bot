@@ -68,12 +68,12 @@ class PlanterSwirledView(discord.ui.View):
         
         embed.add_field(
           name="\u200b",
-              value=(
-                  "<:planter_plastic:1462393814911029271> → <:field_coconut:1464671533837451325> Coconut\n"
-                  "<:planter_candy:1462393769801289840> → <:field_cactus:1464671315138187596> Cactus\n"
-                  "<:planter_tacky:1462393832820965520> → <:field_pumpkin:1464671357592670229> Pumpkin\n"
-                  "<:planter_pesticide:1462393806803697897> → <:field_strawberry:1464671115786850476> Strawberry"
-              ),
+          value=(
+              "<:planter_plastic:1462393814911029271> → <:field_coconut:1464671533837451325> Coconut\n"
+              "<:planter_candy:1462393769801289840> → <:field_cactus:1464671315138187596> Cactus\n"
+              "<:planter_tacky:1462393832820965520> → <:field_pumpkin:1464671357592670229> Pumpkin\n"
+              "<:planter_pesticide:1462393806803697897> → <:field_strawberry:1464671115786850476> Strawberry"
+          ),
           inline=True
         )
         embed.add_field(
