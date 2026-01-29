@@ -42,10 +42,11 @@ class StationMemoryView(discord.ui.View):
         """Create and return the embed for this memory match station panel"""
 
         embed = discord.Embed(
-            title="Set Reminder for Memory Match",
+            title="Memory Match Cooldown Reminders",
             description=(
-              "Track your Memory Match cooldowns to maximize your daily rewards.\n\n"
-              "⬇️ Use this chart to track each Memory Match cooldown."
+              "Track cooldowns for all Memory Match stations.\n"
+              "Each station has its own independent cooldown timer.\n\n"
+              "⬇️ Use this chart to view each Memory Match station cooldown and cost."
             ),
             color=discord.Color.from_str("0xEBC94C"),
             url="https://bee-swarm-simulator.fandom.com/wiki/Memory_Match"
@@ -55,7 +56,7 @@ class StationMemoryView(discord.ui.View):
           icon_url="https://media.discordapp.net/attachments/1464545436353433674/1465744228750594109/100.png?ex=697a3830&is=6978e6b0&hm=a1dd87468b1dba3051d30935007ce128d48e6cc1dc681465dd596311de780474&=&format=webp&quality=lossless&width=150&height=150"
         )
         embed.set_footer(
-          text="Select a Memory Match station below to start its cooldown reminder.",
+          text="If you just played a Memory Match, select the station below to start its cooldown reminder.",
           icon_url="https://cdn.discordapp.com/emojis/1463915624244973609.webp?size=80"
         )
         embed.set_image(url="https://i.ytimg.com/vi/QLk6X9tniFE/maxresdefault.jpg")
@@ -63,11 +64,11 @@ class StationMemoryView(discord.ui.View):
         embed.add_field(
           name="\u200b",
           value=(
-              "`2 Hours` <:item_royaljelly:1464986308639326373> Normal MM: <:honey:1462393791104155744> 25k\n"
-              "`4 Hours` <:icon_badge:1464996867376152764> Mega MM: <:honey:1462393791104155744> 500k\n"
-              "`8 Hours` <:item_mooncharm:1464990091721314304> Night MM: <:honey:1462393791104155744> 5M\n"
-              "`8 Hours` <:item_cloudvial:1464990525122940948> Extreme MM: <:honey:1462393791104155744> 25B\n"
-              "`4 Hours` <:item_gingerbread:1464992612892147722> Winter MM: <:item_snowflake:1465027529684553758> 100"
+              "`2 Hours` → <:item_royaljelly:1464986308639326373> Normal - <:honey:1462393791104155744> 25k Honey\n"
+              "`4 Hours` → <:icon_badge:1464996867376152764> Mega - <:honey:1462393791104155744> 500k Honey\n"
+              "`8 Hours` → <:item_mooncharm:1464990091721314304> Night - <:honey:1462393791104155744> 5M Honey\n"
+              "`8 Hours` → <:item_cloudvial:1464990525122940948> Extreme - <:honey:1462393791104155744> 25B Honey\n"
+              "`4 Hours` → <:item_gingerbread:1464992612892147722> Winter - <:item_snowflake:1465027529684553758> 100 Snowflakes"
               ),
           inline=False
         )

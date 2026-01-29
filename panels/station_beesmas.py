@@ -43,12 +43,57 @@ class StationBeesmasView(discord.ui.View):
     #? --------------- Build Embed ---------------
     @staticmethod
     def get_embed():
-        """Create and return the embed for this panel"""
-        return discord.Embed(
-            title="🎄 Beesmas Station",
-            description="Select a Beesmas station option:",
-            color=discord.Color.gold()
+        """Create and return the embed for this beesmas station panel"""
+
+        embed = discord.Embed(
+            title="Beesmas Station Cooldown Reminders",
+            description=(
+              "Track cooldowns for all Beesmas event stations.\n"
+              "Each station has its own activation rules and cooldown timer.\n\n"
+              "⬇️ Use this chart to view each station cooldown."
+            ),
+            color=discord.Color.from_str("0xFFFFFF"),
+            url="https://bee-swarm-simulator.fandom.com/wiki/Category:Machines"
         )
+        embed.set_author(
+          name="Beesmas Station Tracker",
+          icon_url="https://cdn.discordapp.com/emojis/462596042106470400.webp?size=80"
+        )
+        embed.set_footer(
+          text="If you just used a Beesmas station, select it below to start its cooldown reminder.",
+          icon_url="https://cdn.discordapp.com/emojis/1463915624244973609.webp?size=80"
+        )
+        embed.set_image(url="https://i.ytimg.com/vi/YEb_2jPeZqc/maxresdefault.jpg")
+        
+        embed.add_field(
+          name="\u200b",
+          value=(
+              "`1 Hour` → <:sticker_stocking:1465024944701313176> Stocking (Brown Bear)\n"
+              "`1 Hour 30 Minutes` → <:sticker_forkandknife:1465025577391231167> Beesmas Feast (Polar Bear)\n"
+              "`1 Hour 30 Minutes` → <:sticker_snowbear:1465028535629643867> Snow Bear (Panda Bear)\n"
+              "`2 Hours` → <:item_snowflake:1465027529684553758> Snow Machine (Bucko Bee)"
+          ),
+          inline=False
+        )
+        embed.add_field(
+          name="\u200b",
+          value=(
+              "`3 Hours` → <:sticker_partyrobo:1465026484300419074> Robo Party Cake (Robo Bear)\n"
+              "`4 Hours` → <:beequip_candle:1465028727519051998> Honeyday Candle (Riley Bee)\n"
+              "`6 Hours` → <:sticker_yellowmug:1465026671282356264> Samovar (Dapper Bear)"
+          ),
+          inline=False
+        )
+        embed.add_field(
+          name="\u200b",
+          value=(
+              "`8 Hours` → <:sticker_beekeeper:1465026845526462606> Lit Art (Onett)\n"
+              "`8 Hours` → <:sticker_gummybear:1465026964065620216> Gummy Beacon (Gummy Bear)"
+          ),
+          inline=False
+        )
+        
+        return embed
 
     #? --------------- Row 1: 4 buttons ---------------
     @discord.ui.button(
@@ -61,13 +106,13 @@ class StationBeesmasView(discord.ui.View):
         await self.handle_click(interaction, "Stocking")
 
     @discord.ui.button(
-      label="Feast",
+      label="Beesmas Feast",
       emoji=discord.PartialEmoji(name="sticker_forkandknife", id=1465025577391231167),
-      custom_id="station_beesmas:feast",
+      custom_id="station_beesmas:beesmas_feast",
       row=0
     )
     async def feast_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Feast")
+        await self.handle_click(interaction, "Beesmas Feast")
 
     @discord.ui.button(
       label="Snow Bear",
@@ -89,22 +134,22 @@ class StationBeesmasView(discord.ui.View):
 
     #? --------------- Row 2: 3 buttons ---------------
     @discord.ui.button(
-      label="Robo Party",
+      label="Robo Party Cake",
       emoji=discord.PartialEmoji(name="sticker_partyrobo", id=1465026484300419074),
       custom_id="station_beesmas:robo_party",
       row=1
     )
     async def robo_party_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Robo Party")
+        await self.handle_click(interaction, "Robo Party Cake")
 
     @discord.ui.button(
-      label="Riley Candle",
+      label="Honeyday Candle",
       emoji=discord.PartialEmoji(name="beequip_candle", id=1465028727519051998),
       custom_id="station_beesmas:riley_candle",
       row=1
     )
     async def riley_candle_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Riley Candle")
+        await self.handle_click(interaction, "Honeyday Candle")
 
     @discord.ui.button(
       label="Samovar",
@@ -117,13 +162,13 @@ class StationBeesmasView(discord.ui.View):
 
     #? --------------- Row 3: 2 buttons ---------------
     @discord.ui.button(
-      label="Onett Art",
+      label="Lit Art",
       emoji=discord.PartialEmoji(name="sticker_beekeeper", id=1465026845526462606),
       custom_id="station_beesmas:onett_art",
       row=2
     )
     async def onett_art_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Onett Art")
+        await self.handle_click(interaction, "Lit Art")
 
     @discord.ui.button(
       label="Gummy Beacon",

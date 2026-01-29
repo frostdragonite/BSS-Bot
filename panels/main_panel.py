@@ -40,10 +40,10 @@ PANEL_ORDER = [
         "module": "station_base",
         "class": "StationBaseView"
     },
-    # {
-    #     "module": "station_beesmas",
-    #     "class": "StationBeesmasView"
-    # }
+    {
+        "module": "station_beesmas",
+        "class": "StationBeesmasView"
+    }
 ]
 
 # ===========================================================================

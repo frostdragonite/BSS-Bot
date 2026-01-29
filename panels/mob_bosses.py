@@ -44,39 +44,40 @@ class MobBossesView(discord.ui.View):
         """Create and return the embed for this bosses panel"""
         
         embed = discord.Embed(
-            title="Set Reminder for Bosses",
+            title="Boss Respawn Reminders",
             description=(
-              "Track boss respawn timers so you never miss a fight.\n\n"
-              "⬇️ Use this chart to track each boss' respawn timers."
+              "Track boss respawn timers across all base game bosses.\n"
+              "Each boss follows a fixed respawn interval after being defeated.\n\n"
+              "⬇️ Use this chart to view each boss respawn timer."
             ),
             color=discord.Color.from_str("0x747474"),
             url="https://bee-swarm-simulator.fandom.com/wiki/Mobs#Bosses"
         )
         embed.set_author(
-          name="Bosses Tracker",
+          name="Boss Tracker",
           icon_url="https://media.discordapp.net/attachments/1464545436353433674/1465764093205155890/latest.png?ex=697a4ab0&is=6978f930&hm=a7c78d70eb8af663fd43efe51cb46c1292534873a156da47368a02d072a66f79&=&format=webp&quality=lossless&width=230&height=230"
         )
         embed.set_footer(
-          text="Select a boss below to start its respawn reminder.",
+          text="If you just defeated a boss, select it below to start its respawn reminder.",
           icon_url="https://cdn.discordapp.com/emojis/1463915624244973609.webp?size=80"
         )
         embed.set_image(url="https://i.ytimg.com/vi/iFQykTs5Whw/maxresdefault.jpg")
         
         embed.add_field(
-          name="Row 1",
+          name="\u200b",
           value=(
-              "`1 Day` 🐞 King Beetle\n"
-              "`2 Days` <:sticker_stretchedbear:1465765080468558090> Tunnel Bear\n"
-              "`1 Day 12 Hours` 🦀 Coconut Crab\n"
-              "`4 Days` <:sticker_snail:1465765046301757555> Stump Snail"
+              "`1 Day` → 🐞 King Beetle\n"
+              "`2 Days` → <:sticker_stretchedbear:1465765080468558090> Tunnel Bear\n"
+              "`1 Day 12 Hours` → 🦀 Coconut Crab\n"
+              "`4 Days` → <:sticker_snail:1465765046301757555> Stump Snail"
           ),
           inline=False
         )
         embed.add_field(
-          name="Row 2",
+          name="\u200b",
           value=(
-            "`30 mins` <:sticker_tnt:1465765003792748697> Commando Chick\n"
-            "`1 Days 12 Hours` <:sticker_nymph:1465764975778861178> Stickbug"
+            "`30 mins` → <:sticker_tnt:1465765003792748697> Commando Chick\n"
+            "`1 Days 12 Hours` → <:sticker_nymph:1465764975778861178> Stickbug"
           ),
           inline=False
         )

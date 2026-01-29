@@ -47,49 +47,50 @@ class StationBaseView(discord.ui.View):
         """Create and return the embed for this base game station panel"""
 
         embed = discord.Embed(
-            title="Set Reminder for Base Game Station",
+            title="Station and Dispenser Cooldown Reminders",
             description=(
-              "Track your stations cooldowns.\n\n"
-              "⬇️ Use this chart to track each station cooldown."
+              "Track cooldowns for base game stations and dispensers.\n"
+              "Each station or dispenser has its own independent cooldown.\n\n"
+              "⬇️ Use this chart to view each station and dispenser cooldown."
             ),
             color=discord.Color.from_str("0xFFFFFF"),
             url="https://bee-swarm-simulator.fandom.com/wiki/Category:Machines"
         )
         embed.set_author(
-          name="Machine & Station Tracker",
+          name="Station & Dispenser Tracker",
           icon_url="https://cdn.discordapp.com/emojis/462596042106470400.webp?size=80"
         )
         embed.set_footer(
-          text="Select a location below to start its cooldown reminder.",
+          text="If you just used a station or dispenser,, select it below to start its cooldown reminder.",
           icon_url="https://cdn.discordapp.com/emojis/1463915624244973609.webp?size=80"
         )
         embed.set_image(url="https://i.ytimg.com/vi/T7oZDl835Ro/maxresdefault.jpg")
         
         embed.add_field(
-          name="Row 1",
+          name="\u200b",
           value=(
-              "`1 Hour` <:sticker_hourglass:1465022845800157255> Wealth Clock\n"
-              "`4 Hours` <:token_honey:1465023103477219329> Honey Storm\n"
-              "`16 Hours` <:sticker_sprout:1465023224143282417> Special Sprout\n"
-              "`22 Hours` ☄️ Mythic Meteor"
+              "`1 Hour` → <:sticker_hourglass:1465022845800157255> Wealth Clock\n"
+              "`4 Hours` → <:token_honey:1465023103477219329> Honey Storm\n"
+              "`16 Hours` → <:sticker_sprout:1465023224143282417> Special Sprout\n"
+              "`22 Hours` → ☄️ Mythic Meteor"
           ),
           inline=False
         )
         embed.add_field(
-          name="Row 2",
+          name="\u200b",
           value=(
-              "`1 Hour` <:item_spiritpetal:1465024160467255347> Wind Shrine\n"
-              "`1 Hour` 🖨️ Sticker Printer"
+              "`1 Hour` → <:item_spiritpetal:1465024160467255347> Wind Shrine\n"
+              "`1 Hour` → 🖨️ Sticker Printer"
           ),
           inline=False
         )
         embed.add_field(
-          name="Row 3",
+          name="\u200b",
           value=(
-              "`4 Hours` <:item_spiritpetal:1465024160467255347> Wind Shrine\n"
-              "`22 Hour` <:item_glue:1464852440527405056> Glue Dispenser\n"
-              "`2 Hour` <:item_antpass:1465771181176258757> Ant Pass Dispenser\n"
-              "`22 Hour` <:item_robopass:1465771250046468097> Robo Pass Dispenser"
+              "`4 Hours` → <:item_coconut:1464960629004697701> Coconut Dispenser\n"
+              "`22 Hours` → <:item_glue:1464852440527405056> Glue Dispenser\n"
+              "`2 Hours` → <:item_antpass:1465771181176258757> Ant Pass Dispenser\n"
+              "`22 Hours` → <:item_robopass:1465771250046468097> Robo Pass Dispenser"
           ),
           inline=False
         )
