@@ -2,7 +2,7 @@ from typing import Dict, Optional
 from datetime import datetime
 import discord
 from discord.ui import Button, View
-from core.config_service import get_destination_channel_id
+from core.config_service import get_destination_channel_id, get_user_cooldown_reduction
 from core.reminder_service import ReminderService, CooldownConfig
 
 # ========================================================================
@@ -14,7 +14,8 @@ async def handle_panel_click(
     reminder_service: ReminderService,
     panel_name: str,
     reminder_item_name: str,
-    success_item_name: Optional[str] = None
+    success_item_name: Optional[str] = None,
+    apply_cooldown_reduction: bool = False
 ) -> None:
     # --------------------------------------------------------------------
     """
@@ -29,6 +30,7 @@ async def handle_panel_click(
         reminder_service: The ReminderService instance for creating reminders
         panel_name: Name of the panel for logging purposes
         success_item: The name of the item that will be in success message
+        apply_cooldown_reduction: Whether to apply user's cooldown reduction (default: False)
     """
     # --------------------------------------------------------------------
     destination_id = get_destination_channel_id()
@@ -65,14 +67,20 @@ async def handle_panel_click(
                 reminder_service=reminder_service,
                 destination_id=destination_id,
                 panel_name=panel_name,
-                success_item_name=success_item_name
+                success_item_name=success_item_name,
+                apply_cooldown_reduction=apply_cooldown_reduction
             )
             return
         
         # Get cooldown for this specific item
         cooldown = cooldown_map.get(item_key)
         
-        # Create reminder using the core service
+        # Get user's cooldown reduction if applicable
+        cooldown_reduction = 0
+        if apply_cooldown_reduction:
+            cooldown_reduction = get_user_cooldown_reduction(interaction.user.id, panel_name)
+        
+        # Create reminder using the core service with cooldown reduction
         reminder_time = reminder_service.create_reminder(
             user_id=interaction.user.id,
             item_key=item_key,
@@ -80,7 +88,8 @@ async def handle_panel_click(
             reminder_item_name=reminder_item_name,
             cooldown=cooldown,
             channel_id=destination_id,
-            username=interaction.user.name
+            username=interaction.user.name,
+            cooldown_reduction_percent=cooldown_reduction
         )
         
         # Format reminder time for display
@@ -132,7 +141,8 @@ class ReminderActionView(View):
         reminder_service: ReminderService,
         destination_id: int,
         panel_name: str,
-        success_item_name: Optional[str] = None
+        success_item_name: Optional[str] = None,
+        apply_cooldown_reduction: bool = False
     ):
         super().__init__()
         self.user_id = user_id
@@ -145,6 +155,7 @@ class ReminderActionView(View):
         self.destination_id = destination_id
         self.panel_name = panel_name
         self.success_item_name = success_item_name
+        self.apply_cooldown_reduction = apply_cooldown_reduction
     # ====================================================================
     
 
@@ -194,7 +205,12 @@ class ReminderActionView(View):
             # Get cooldown for this specific item
             cooldown = self.cooldown_map.get(self.item_key)
             
-            # Create new reminder (overwrites existing)
+            # Get user's cooldown reduction if applicable
+            cooldown_reduction = 0
+            if self.apply_cooldown_reduction:
+                cooldown_reduction = get_user_cooldown_reduction(self.user_id, self.panel_name)
+            
+            # Create new reminder (overwrites existing) with cooldown reduction
             reminder_time = self.reminder_service.create_reminder(
                 user_id=self.user_id,
                 item_key=self.item_key,
@@ -202,7 +218,8 @@ class ReminderActionView(View):
                 reminder_item_name=self.reminder_item_name,
                 cooldown=cooldown,
                 channel_id=self.destination_id,
-                username=interaction.user.name
+                username=interaction.user.name,
+                cooldown_reduction_percent=cooldown_reduction
             )
             
             # Format reminder time for display
@@ -245,7 +262,8 @@ async def show_reminder_exists_prompt(
     reminder_service: ReminderService,
     destination_id: int,
     panel_name: str,
-    success_item_name: Optional[str] = None
+    success_item_name: Optional[str] = None,
+    apply_cooldown_reduction: bool = False
 ) -> None:
     # ====================================================================
     """Show prompt for user when reminder already exists"""
@@ -271,7 +289,8 @@ async def show_reminder_exists_prompt(
             reminder_service=reminder_service,
             destination_id=destination_id,
             panel_name=panel_name,
-            success_item_name=success_item_name
+            success_item_name=success_item_name,
+            apply_cooldown_reduction=apply_cooldown_reduction
         )
         
         await interaction.response.send_message(

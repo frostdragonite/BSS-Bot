@@ -290,23 +290,6 @@ class StationBase(commands.Cog):
         reminder_checker = get_reminder_checker(bot)
         reminder_checker.register_service("station_base", reminder_service)
 
-    #? --------------- Setup Panel Command ---------------
-    @discord.app_commands.command(name="setup-panel-station-base", description="Set up the Base Station panel")
-    @discord.app_commands.checks.has_permissions(administrator=True)
-    async def setup_panel(self, interaction: discord.Interaction):
-        """Set up the Base Station panel"""
-        embed = StationBaseView.get_embed()
-        view = StationBaseView()
-        await interaction.response.send_message(embed=embed, view=view)
-        
-        # Get the message that was sent
-        message = await interaction.original_response()
-        
-        # Save panel message info for persistence
-        save_panel_message(PANEL_NAME, interaction.channel.id, message.id)
-        
-        print(f"Base Station panel set up in #{interaction.channel.name} by {interaction.user.name} (Message ID: {message.id})")
-
     #? --------------- Restore Panel on Startup ---------------
     @commands.Cog.listener()
     async def on_ready(self):

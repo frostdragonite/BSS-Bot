@@ -272,23 +272,6 @@ class StationBeesmas(commands.Cog):
         reminder_checker = get_reminder_checker(bot)
         reminder_checker.register_service("station_beesmas", reminder_service)
 
-    #? --------------- Setup Panel Command ---------------
-    @discord.app_commands.command(name="setup-panel-station-beesmas", description="Set up the Beesmas Station panel")
-    @discord.app_commands.checks.has_permissions(administrator=True)
-    async def setup_panel(self, interaction: discord.Interaction):
-        """Set up the Beesmas Station panel"""
-        embed = StationBeesmasView.get_embed()
-        view = StationBeesmasView()
-        await interaction.response.send_message(embed=embed, view=view)
-        
-        # Get the message that was sent
-        message = await interaction.original_response()
-        
-        # Save panel message info for persistence
-        save_panel_message(PANEL_NAME, interaction.channel.id, message.id)
-        
-        print(f"Beesmas Station panel set up in #{interaction.channel.name} by {interaction.user.name} (Message ID: {message.id})")
-
     #? --------------- Restore Panel on Startup ---------------
     @commands.Cog.listener()
     async def on_ready(self):

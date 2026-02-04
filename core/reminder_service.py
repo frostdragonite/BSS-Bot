@@ -184,7 +184,8 @@ class ReminderService:
         reminder_item_name: str,
         cooldown: CooldownConfig,
         channel_id: int,
-        username: str = None
+        username: str = None,
+        cooldown_reduction_percent: int = 0
     ) -> datetime:
         # ----------------------------------------------------------------
         """
@@ -206,6 +207,8 @@ class ReminderService:
             Channel ID where reminder should be sent
         username: Optional[:class:`str`]
             Optional username for logging
+        cooldown_reduction_percent: Optional[:class:`int`]
+            Cooldown reduction percentage (0-50). Defaults to 0.
             
         Returns
         ------------
@@ -216,7 +219,12 @@ class ReminderService:
         reminders = self.load_reminders()
         reminder_key = f"{user_id}:{item_key}"
         
-        reminder_time = datetime.now() + cooldown.to_timedelta()
+        # Apply cooldown reduction if provided
+        total_seconds = cooldown.to_timedelta().total_seconds()
+        reduced_seconds = total_seconds * (1 - cooldown_reduction_percent / 100)
+        reduced_timedelta = timedelta(seconds=reduced_seconds)
+        
+        reminder_time = datetime.now() + reduced_timedelta
         
         reminders[reminder_key] = {
             "user_id": str(user_id),
@@ -226,7 +234,8 @@ class ReminderService:
             "reminder_time": reminder_time.isoformat(),
             "channel_id": str(channel_id),
             "created_at": datetime.now().isoformat(),
-            "cooldown": cooldown.to_dict()
+            "cooldown": cooldown.to_dict(),
+            "cooldown_reduction_percent": cooldown_reduction_percent
         }
         
         self.save_reminders(reminders)

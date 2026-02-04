@@ -74,3 +74,40 @@ def save_reminders(panel_name: str, reminders: Dict[str, Any]):
     
     config["reminders"][panel_name] = reminders
     save_config(config)
+
+def get_user_cooldown_reduction(user_id: int, panel_name: str = None) -> int:
+    """Get cooldown reduction percentage for a user for a specific panel (0-50)"""
+    config = load_config()
+    user_settings = config.get("user_settings", {})
+    user_data = user_settings.get(str(user_id), {})
+    
+    if panel_name:
+        # Panel-specific cooldown reduction
+        panel_reductions = user_data.get("panel_cooldown_reductions", {})
+        return panel_reductions.get(panel_name, 0)
+    else:
+        # Global fallback (for backwards compatibility)
+        return user_data.get("cooldown_reduction", 0)
+
+def set_user_cooldown_reduction(user_id: int, percentage: int, panel_name: str = None):
+    """Set cooldown reduction percentage for a user for a specific panel (0-50)"""
+    if not 0 <= percentage <= 50:
+        raise ValueError("Cooldown reduction must be between 0 and 50")
+    
+    config = load_config()
+    if "user_settings" not in config:
+        config["user_settings"] = {}
+    
+    if str(user_id) not in config["user_settings"]:
+        config["user_settings"][str(user_id)] = {}
+    
+    if panel_name:
+        # Panel-specific cooldown reduction
+        if "panel_cooldown_reductions" not in config["user_settings"][str(user_id)]:
+            config["user_settings"][str(user_id)]["panel_cooldown_reductions"] = {}
+        config["user_settings"][str(user_id)]["panel_cooldown_reductions"][panel_name] = percentage
+    else:
+        # Global cooldown reduction
+        config["user_settings"][str(user_id)]["cooldown_reduction"] = percentage
+    
+    save_config(config)

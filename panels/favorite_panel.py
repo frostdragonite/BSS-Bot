@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import json
 import os
+from core.click_handler_service import handle_panel_click
 
 # ===========================================================================
 # ========================= STORAGE SETUP =========================
@@ -22,13 +23,6 @@ def load_config():
 class FavoritePanelView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
-
-    async def handle_click(self, interaction: discord.Interaction, item: str):
-        """Handle button clicks"""
-        await interaction.response.send_message(
-            "Favorite panel functionality coming soon!",
-            ephemeral=True
-        )
 
 # ===========================================================================
 # ========================= COG SETUP =========================

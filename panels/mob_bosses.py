@@ -50,8 +50,10 @@ class MobBossesView(discord.ui.View):
         embed = discord.Embed(
             title="Boss Respawn Reminders",
             description=(
-                "Track boss respawn timers across all base game bosses.\n"
-                "Each boss follows a fixed respawn interval after being defeated.\n\n"
+                "Track respawn timers across all base game bosses.\n"
+                "Most bosses follows a fixed respawn interval after being defeated.\n\n"
+                "Use `/set-respawn-timer` to apply your personal respawn reduction.\n"
+                "Example: `/set-respawn-timer 15` from Gifted Vicious Bee.\n\n"
                 "⬇️ Use this chart to view each boss respawn timer."
             ),
             color=discord.Color.from_str("0x747474"),
@@ -106,6 +108,7 @@ class MobBossesView(discord.ui.View):
             reminder_service=reminder_service,
             panel_name=PANEL_NAME,
             reminder_item_name="King Beetle",
+            apply_cooldown_reduction=True,
         )
     # ====================================================================
     @discord.ui.button(
@@ -123,6 +126,7 @@ class MobBossesView(discord.ui.View):
             reminder_service=reminder_service,
             panel_name=PANEL_NAME,
             reminder_item_name="Tunnel Bear",
+            apply_cooldown_reduction=True,
         )
     # ====================================================================
     @discord.ui.button(
@@ -140,6 +144,7 @@ class MobBossesView(discord.ui.View):
             reminder_service=reminder_service,
             panel_name=PANEL_NAME,
             reminder_item_name="Coconut Crab",
+            apply_cooldown_reduction=True,
         )
     # ====================================================================
     @discord.ui.button(
@@ -157,6 +162,7 @@ class MobBossesView(discord.ui.View):
             reminder_service=reminder_service,
             panel_name=PANEL_NAME,
             reminder_item_name="Stump Snail",
+            apply_cooldown_reduction=True,
         )
     # ====================================================================
 
@@ -176,6 +182,7 @@ class MobBossesView(discord.ui.View):
             reminder_service=reminder_service,
             panel_name=PANEL_NAME,
             reminder_item_name="Commando Chick",
+            apply_cooldown_reduction=True,
         )
     # ====================================================================        
     # @discord.ui.button(
@@ -224,23 +231,6 @@ class MobBosses(commands.Cog):
         # Register this panel's reminder service with the global checker
         reminder_checker = get_reminder_checker(bot)
         reminder_checker.register_service("mob_bosses", reminder_service)
-
-    #? --------------- Setup Panel Command ---------------
-    @discord.app_commands.command(name="setup-panel-mob-bosses", description="Set up the Bosses panel")
-    @discord.app_commands.checks.has_permissions(administrator=True)
-    async def setup_panel(self, interaction: discord.Interaction):
-        """Set up the Bosses panel"""
-        embed = MobBossesView.get_embed()
-        view = MobBossesView()
-        await interaction.response.send_message(embed=embed, view=view)
-        
-        # Get the message that was sent
-        message = await interaction.original_response()
-        
-        # Save panel message info for persistence
-        save_panel_message(PANEL_NAME, interaction.channel.id, message.id)
-
-        print(f"Bosses panel set up in #{interaction.channel.name} by {interaction.user.name}")
 
     #? --------------- Restore Panel on Startup ---------------
     @commands.Cog.listener()

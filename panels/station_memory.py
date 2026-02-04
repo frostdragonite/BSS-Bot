@@ -179,23 +179,6 @@ class StationMemory(commands.Cog):
         reminder_checker = get_reminder_checker(bot)
         reminder_checker.register_service("station_memory", reminder_service)
 
-    #? --------------- Setup Panel Command ---------------
-    @discord.app_commands.command(name="setup-panel-station-memory", description="Set up the Memory Match station panel")
-    @discord.app_commands.checks.has_permissions(administrator=True)
-    async def setup_panel(self, interaction: discord.Interaction):
-        """Set up the Memory Match station panel"""
-        embed = StationMemoryView.get_embed()
-        view = StationMemoryView()
-        await interaction.response.send_message(embed=embed, view=view)
-        
-        # Get the message that was sent
-        message = await interaction.original_response()
-        
-        # Save panel message info for persistence
-        save_panel_message(PANEL_NAME, interaction.channel.id, message.id)
-        
-        print(f"Memory Match panel set up in #{interaction.channel.name} by {interaction.user.name} (Message ID: {message.id})")
-
     #? --------------- Restore Panel on Startup ---------------
     @commands.Cog.listener()
     async def on_ready(self):
