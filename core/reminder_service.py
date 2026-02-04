@@ -6,63 +6,93 @@ Can be used by any panel in the bot.
 import json
 import os
 from datetime import datetime, timedelta
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 from discord.ext import tasks, commands
-import discord
 
-
+# ========================================================================
+# Cooldown Configuration - Days, Hours, Minutes
+# ========================================================================
 class CooldownConfig:
-    """Configuration for a cooldown period"""
+    # --------------------------------------------------------------------
+    """
+    Create a flexible cooldown configuration that supports days, hours, and minutes.
+    
+    Parameters
+    ------------
+    days: Optional[:class:`int`]
+        Number of days
+    hours: Optional[:class:`int`]
+        Number of hours
+    minutes: Optional[:class:`int`]
+        Number of minutes
+
+    Parameters
+    ------------
+    1 hour, 30 minutes
+        cooldown = `CooldownConfig(hours=1, minutes=30)`
+    36 days
+        cooldown = `CooldownConfig(days=36)`
+    2 days, 5 hours, 15 minutes
+        cooldown = `CooldownConfig(days=2, hours=5, minutes=15)`
+    """
+    # ====================================================================
     def __init__(self, days: int = 0, hours: int = 0, minutes: int = 0):
-        """
-        Create a cooldown configuration.
-        
-        Args:
-            days: Number of days
-            hours: Number of hours
-            minutes: Number of minutes
-            
-        Example:
-            # 1 hour 30 minutes
-            cooldown = CooldownConfig(hours=1, minutes=30)
-            
-            # 36 days
-            cooldown = CooldownConfig(days=36)
-            
-            # 2 days, 5 hours, 15 minutes
-            cooldown = CooldownConfig(days=2, hours=5, minutes=15)
-        """
         self.days = days
         self.hours = hours
         self.minutes = minutes
+    # ====================================================================
     
+
+    # ====================================================================
     def to_timedelta(self) -> timedelta:
+        # ----------------------------------------------------------------
         """Convert to Python timedelta object"""
+        # ----------------------------------------------------------------
         return timedelta(days=self.days, hours=self.hours, minutes=self.minutes)
+    # ====================================================================
     
+
+    # ====================================================================
     def total_seconds(self) -> float:
+        # ----------------------------------------------------------------
         """Get total cooldown in seconds"""
+        # ----------------------------------------------------------------
         return self.to_timedelta().total_seconds()
+    # ====================================================================
     
+
+    # ====================================================================
     def to_dict(self) -> dict:
+        # ----------------------------------------------------------------
         """Convert to dictionary for JSON storage"""
+        # ----------------------------------------------------------------
         return {
             "days": self.days,
             "hours": self.hours,
             "minutes": self.minutes
         }
-    
+    # ====================================================================
+
+
+    # ====================================================================
     @classmethod
     def from_dict(cls, data: dict) -> 'CooldownConfig':
+        # ----------------------------------------------------------------
         """Create from dictionary"""
+        # ----------------------------------------------------------------
         return cls(
             days=data.get("days", 0),
             hours=data.get("hours", 0),
             minutes=data.get("minutes", 0)
         )
+    # ====================================================================
     
+
+    # ====================================================================
     def __str__(self) -> str:
+        # ----------------------------------------------------------------
         """Human-readable string representation"""
+        # ----------------------------------------------------------------
         parts = []
         if self.days > 0:
             parts.append(f"{self.days} day{'s' if self.days != 1 else ''}")
@@ -80,28 +110,37 @@ class CooldownConfig:
             return f"{parts[0]} and {parts[1]}"
         else:
             return f"{', '.join(parts[:-1])}, and {parts[-1]}"
+    # ====================================================================
 
 
+# ========================================================================
+# Reminder Service
+# ========================================================================
 class ReminderService:
-    """Core service for managing reminders across all panels"""
+    # --------------------------------------------------------------------
+    """
+    Initialize reminder service for a panel.
     
+    Args:
+        panel_name: Name of the panel (for logging/debugging)
+        use_centralized_config: If True, use centralized panel_config.json. If False, use separate file.
+    """
+    # ====================================================================
     def __init__(self, panel_name: str, use_centralized_config: bool = True):
-        """
-        Initialize reminder service for a panel.
-        
-        Args:
-            panel_name: Name of the panel (for logging/debugging)
-            use_centralized_config: If True, use centralized panel_config.json. If False, use separate file.
-        """
         self.panel_name = panel_name
         self.use_centralized_config = use_centralized_config
         
         if not use_centralized_config:
             # Legacy mode: use separate file
             self.reminders_file = f"{panel_name.lower().replace(' ', '_')}_reminders.json"
+    # ====================================================================
     
+
+    # ====================================================================
     def load_reminders(self) -> Dict:
+        # ----------------------------------------------------------------
         """Load reminders from storage"""
+        # ----------------------------------------------------------------
         if self.use_centralized_config:
             from core.config_service import get_reminders
             return get_reminders(self.panel_name)
@@ -115,9 +154,14 @@ class ReminderService:
                     print(f"Error loading reminders for {self.panel_name}: {e}")
                     return {}
             return {}
+    # ====================================================================
     
+
+    # ====================================================================
     def save_reminders(self, reminders: Dict):
+        # ----------------------------------------------------------------
         """Save reminders to storage"""
+        # ----------------------------------------------------------------
         if self.use_centralized_config:
             from core.config_service import save_reminders
             save_reminders(self.panel_name, reminders)
@@ -128,37 +172,57 @@ class ReminderService:
                     json.dump(reminders, f, indent=2)
             except IOError as e:
                 print(f"Error saving reminders for {self.panel_name}: {e}")
+    # ====================================================================
+
     
+    # ====================================================================
     def create_reminder(
         self,
         user_id: int,
-        item_name: str,
+        item_key: str,
+        item_emoji: str,
+        reminder_item_name: str,
         cooldown: CooldownConfig,
         channel_id: int,
         username: str = None
     ) -> datetime:
+        # ----------------------------------------------------------------
         """
         Create a new reminder.
         
-        Args:
-            user_id: Discord user ID
-            item_name: Name of the item (e.g., "Plastic", "Candy")
-            cooldown: CooldownConfig object
-            channel_id: Channel ID where reminder should be sent
-            username: Optional username for logging
+        Parameters
+        ------------
+        user_id: :class:`int`
+            Discord user ID
+        item_key: :class:`str`
+            Key for the item
+        item_emoji: :class:`str`
+            Emoji of the item, (e.g., 🐞)
+        reminder_item_name: :class:`str`
+            Name of the item (e.g., "Plastic", "Candy")
+        cooldown: :class:`.CooldownConfig`
+            CooldownConfig object
+        channel_id: :class:`int`
+            Channel ID where reminder should be sent
+        username: Optional[:class:`str`]
+            Optional username for logging
             
-        Returns:
-            datetime: When the reminder will trigger
+        Returns
+        ------------
+        :class:`datetime`
+            When the reminder will trigger
         """
+        # ----------------------------------------------------------------
         reminders = self.load_reminders()
-        reminder_key = f"{user_id}:{item_name}"
+        reminder_key = f"{user_id}:{item_key}"
         
         reminder_time = datetime.now() + cooldown.to_timedelta()
         
         reminders[reminder_key] = {
             "user_id": str(user_id),
             "username": username or str(user_id),
-            "item": item_name,
+            "item_emoji": item_emoji,
+            "reminder_item_name": reminder_item_name,
             "reminder_time": reminder_time.isoformat(),
             "channel_id": str(channel_id),
             "created_at": datetime.now().isoformat(),
@@ -167,39 +231,94 @@ class ReminderService:
         
         self.save_reminders(reminders)
         return reminder_time
+    # ====================================================================
     
-    def format_reminder_time(self, reminder_time: datetime) -> str:
+    
+    # ====================================================================
+    def _round_up_to_minute(self, dt: datetime) -> datetime:
+        # ----------------------------------------------------------------
+        """Round up datetime to the next minute"""
+        # ----------------------------------------------------------------
+        if dt.second > 0 or dt.microsecond > 0:
+            # Round up to next minute
+            return (dt + timedelta(minutes=1)).replace(second=0, microsecond=0)
+        else:
+            # Already at the top of a minute
+            return dt
+    # ====================================================================
+
+    # ====================================================================
+    def format_reminder_unix_time(self, reminder_time: datetime, type: str) -> str:
+        # ----------------------------------------------------------------
+        """Format reminder time for display as Discord timestamp"""
+        # ----------------------------------------------------------------
+        rounded_time = self._round_up_to_minute(reminder_time)
+        unix_timestamp = int(rounded_time.timestamp())
+        return f"<t:{unix_timestamp}:{type}>"
+    # ====================================================================
+    
+
+    # ====================================================================
+    def format_reminder_human_time(self, reminder_time: datetime) -> str:
+        # ----------------------------------------------------------------
         """Format reminder time for display"""
-        return reminder_time.strftime("%B %d, %Y at %I:%M %p")
+        # ----------------------------------------------------------------
+        rounded_time = self._round_up_to_minute(reminder_time)
+        return rounded_time.strftime("%B %d, %Y at %I:%M %p")
+    # ====================================================================
     
-    def get_reminder_info(self, user_id: int, item_name: str) -> Optional[Dict]:
+
+    # ====================================================================
+    def get_reminder_info(self, user_id: int, item_key: str) -> Optional[Dict]:
+        # ----------------------------------------------------------------
         """Get existing reminder info if it exists"""
+        # ----------------------------------------------------------------
         reminders = self.load_reminders()
-        reminder_key = f"{user_id}:{item_name}"
+        reminder_key = f"{user_id}:{item_key}"
         return reminders.get(reminder_key)
+    # ====================================================================
 
 
+# ========================================================================
+# Reminder Checker Background Task
+# ========================================================================
 class ReminderChecker(commands.Cog):
+    # --------------------------------------------------------------------
     """Background task manager for checking and sending reminders"""
-    
-    def __init__(self, bot: commands.Bot):
+    # ====================================================================
+    def __init__(self, bot: commands.Bot, check_interval: float = 1.0):
         self.bot = bot
-        self.check_interval = 1.0  # Check every minute
         self.reminder_services: Dict[str, ReminderService] = {}
+        self.reminder_check.change_interval(minutes=check_interval)
         self.reminder_check.start()
+    # ====================================================================
     
+
+    # ====================================================================
     def register_service(self, panel_name: str, service: ReminderService):
+        # ----------------------------------------------------------------
         """Register a reminder service to check"""
+        # ----------------------------------------------------------------
         self.reminder_services[panel_name] = service
         print(f"Registered reminder service for {panel_name}")
+    # ====================================================================
     
+    
+    # ====================================================================
     def cog_unload(self):
+        # ----------------------------------------------------------------
         """Stop the reminder check task when cog is unloaded"""
+        # ----------------------------------------------------------------
         self.reminder_check.cancel()
+    # ====================================================================
     
-    @tasks.loop(minutes=1.0)
+
+    # ====================================================================
+    @tasks.loop()
     async def reminder_check(self):
+        # ----------------------------------------------------------------
         """Check for expired reminders and ping users"""
+        # ----------------------------------------------------------------
         if not self.bot.is_ready():
             return
         
@@ -220,24 +339,25 @@ class ReminderChecker(commands.Cog):
                     try:
                         user_id = int(reminder_data["user_id"])
                         channel_id = int(reminder_data["channel_id"])
-                        item = reminder_data["item"]
+                        item_emoji = reminder_data["item_emoji"]
+                        item_name = reminder_data["reminder_item_name"]
                         
                         channel = self.bot.get_channel(channel_id)
                         if channel:
                             user = self.bot.get_user(user_id)
                             if user:
                                 await channel.send(
-                                    f"🔔 {user.mention} Your **{item}** cooldown is ready! "
+                                    f"🔔 {user.mention} - {item_emoji} **{item_name}** cooldown is ready!\n"
                                     f"You can now use it again."
                                 )
-                                print(f"[{panel_name}] Reminder sent: {reminder_data.get('username', user_id)} - {item} ready")
+                                print(f"[{panel_name}] Reminder sent: {reminder_data.get('username', user_id)} - {item_name} ready")
                             else:
                                 # User not cached, use mention format
                                 await channel.send(
-                                    f"🔔 <@{user_id}> Your **{item}** cooldown is ready! "
+                                    f"🔔 <@{user_id}> - {item_emoji} **{item_name}** cooldown is ready!\n"
                                     f"You can now use it again."
                                 )
-                                print(f"[{panel_name}] Reminder sent (user not cached): {user_id} - {item} ready")
+                                print(f"[{panel_name}] Reminder sent (user not cached): {user_id} - {item_name} ready")
                         
                         # Remove expired reminder
                         del reminders[reminder_key]
@@ -253,20 +373,30 @@ class ReminderChecker(commands.Cog):
                     
             except Exception as e:
                 print(f"[{panel_name}] Error in reminder_check: {e}")
+    # ====================================================================
     
+
+    # ====================================================================
     @reminder_check.before_loop
     async def before_reminder_check(self):
+        # ----------------------------------------------------------------
         """Wait until bot is ready before starting the task"""
+        # ----------------------------------------------------------------
         await self.bot.wait_until_ready()
+    # ====================================================================
 
 
-# Global reminder checker instance (will be initialized in bot.py)
-reminder_checker: Optional[ReminderChecker] = None
-
-
+# ========================================================================
 def get_reminder_checker(bot: commands.Bot) -> ReminderChecker:
+    # --------------------------------------------------------------------
     """Get or create the global reminder checker instance"""
+    # --------------------------------------------------------------------
     global reminder_checker
     if reminder_checker is None:
         reminder_checker = ReminderChecker(bot)
     return reminder_checker
+# ========================================================================
+
+
+# Global reminder checker instance (will be initialized in bot.py)
+reminder_checker: Optional[ReminderChecker] = None

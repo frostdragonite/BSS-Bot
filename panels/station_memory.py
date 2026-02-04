@@ -2,10 +2,10 @@ import discord
 from discord.ext import commands
 from core.reminder_service import ReminderService, CooldownConfig, get_reminder_checker
 from core.config_service import (
-    get_destination_channel_id,
     get_panel_message,
     save_panel_message
 )
+from core.click_handler_service import handle_panel_click
 
 # ===========================================================================
 # ========================= STORAGE SETUP =========================
@@ -18,12 +18,12 @@ PANEL_NAME = "station_memory"  # Panel identifier for config storage
 #   CooldownConfig(days=36)                    # 36 days
 #   CooldownConfig(hours=1, minutes=30)        # 1 hour 30 minutes
 #   CooldownConfig(days=2, hours=5, minutes=15) # 2 days, 5 hours, 15 minutes
-STATION_COOLDOWNS = {
-    "Normal": CooldownConfig(hours=2),
-    "Mega": CooldownConfig(hours=4),
-    "Night": CooldownConfig(hours=8),
-    "Extreme": CooldownConfig(hours=8),
-    "Winter": CooldownConfig(hours=4),
+COOLDOWN_MAP = {
+    "normal": CooldownConfig(hours=2),
+    "mega": CooldownConfig(hours=4),
+    "night": CooldownConfig(hours=8),
+    "extreme": CooldownConfig(hours=8),
+    "winter": CooldownConfig(hours=4),
 }
 
 # Initialize reminder service (uses centralized config by default)
@@ -33,145 +33,141 @@ reminder_service = ReminderService("station_memory", use_centralized_config=True
 # ========================= PANEL VIEW =========================
 # ===========================================================================
 class StationMemoryView(discord.ui.View):
+    # ====================================================================
     def __init__(self):
         super().__init__(timeout=None)
+    # ====================================================================
     
-    #? --------------- Build Embed ---------------
+    
+    #? --------------------------- Build Embed ---------------------------
     @staticmethod
     def get_embed():
+        # ----------------------------------------------------------------
         """Create and return the embed for this memory match station panel"""
-
+        # ----------------------------------------------------------------
         embed = discord.Embed(
             title="Memory Match Cooldown Reminders",
             description=(
-              "Track cooldowns for all Memory Match stations.\n"
-              "Each station has its own independent cooldown timer.\n\n"
-              "⬇️ Use this chart to view each Memory Match station cooldown and cost."
+                "Track cooldowns for all Memory Match stations.\n"
+                "Each station has its own independent cooldown timer.\n\n"
+                "⬇️ Use this chart to view each station cooldown and cost."
             ),
             color=discord.Color.from_str("0xEBC94C"),
             url="https://bee-swarm-simulator.fandom.com/wiki/Memory_Match"
         )
         embed.set_author(
-          name="Memory Match Tracker",
-          icon_url="https://media.discordapp.net/attachments/1464545436353433674/1465744228750594109/100.png?ex=697a3830&is=6978e6b0&hm=a1dd87468b1dba3051d30935007ce128d48e6cc1dc681465dd596311de780474&=&format=webp&quality=lossless&width=150&height=150"
+            name="Memory Match Tracker",
+            icon_url="https://media.discordapp.net/attachments/1464545436353433674/1465744228750594109/100.png?ex=697a3830&is=6978e6b0&hm=a1dd87468b1dba3051d30935007ce128d48e6cc1dc681465dd596311de780474&=&format=webp&quality=lossless&width=150&height=150"
         )
         embed.set_footer(
-          text="If you just played a Memory Match, select the station below to start its cooldown reminder.",
-          icon_url="https://cdn.discordapp.com/emojis/1463915624244973609.webp?size=80"
+            text="If you just played a Memory Match, select the station below to start its cooldown reminder.",
+            icon_url="https://cdn.discordapp.com/emojis/1463915624244973609.webp?size=80"
         )
         embed.set_image(url="https://i.ytimg.com/vi/QLk6X9tniFE/maxresdefault.jpg")
         
+
         embed.add_field(
-          name="\u200b",
-          value=(
-              "`2 Hours` → <:item_royaljelly:1464986308639326373> Normal - <:honey:1462393791104155744> 25k Honey\n"
-              "`4 Hours` → <:icon_badge:1464996867376152764> Mega - <:honey:1462393791104155744> 500k Honey\n"
-              "`8 Hours` → <:item_mooncharm:1464990091721314304> Night - <:honey:1462393791104155744> 5M Honey\n"
-              "`8 Hours` → <:item_cloudvial:1464990525122940948> Extreme - <:honey:1462393791104155744> 25B Honey\n"
-              "`4 Hours` → <:item_gingerbread:1464992612892147722> Winter - <:item_snowflake:1465027529684553758> 100 Snowflakes"
-              ),
-          inline=False
+            name="\u200b",
+            value=(
+                "`2 Hours` → <:item_royaljelly:1464986308639326373> Normal - <:honey:1462393791104155744> 25k Honey\n"
+                "`4 Hours` → <:icon_badge:1464996867376152764> Mega - <:honey:1462393791104155744> 500k Honey\n"
+                "`8 Hours` → <:item_mooncharm:1464990091721314304> Night - <:honey:1462393791104155744> 5M Honey\n"
+                "`8 Hours` → <:item_cloudvial:1464990525122940948> Extreme - <:honey:1462393791104155744> 25B Honey\n"
+                "`4 Hours` → <:item_gingerbread:1464992612892147722> Winter - <:item_snowflake:1465027529684553758> 100 Snowflakes"
+                ),
+            inline=False
         )
         
         return embed
+    # ====================================================================
 
-    #? --------------- Row 1: 5 buttons ---------------
+    #? ------------------------ Row 1: 5 buttons -------------------------
     @discord.ui.button(
-      label="Normal",
-      emoji=discord.PartialEmoji(name="item_royaljelly", id=1464986308639326373),
-      custom_id="station_memory:normal",
-      row=0
+        label="Normal",
+        emoji=discord.PartialEmoji(name="item_royaljelly", id=1464986308639326373),
+        custom_id="station_memory:normal",
+        row=0
     )
     async def normal_memory_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Normal")
-
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="normal",
+            item_emoji="<:item_royaljelly:1464986308639326373>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Normal Memory Match"
+        )
+    # ====================================================================
     @discord.ui.button(
-      label="Mega",
-      emoji=discord.PartialEmoji(name="icon_badge", id=1464996867376152764),
-      custom_id="station_memory:mega",
-      row=0
+        label="Mega",
+        emoji=discord.PartialEmoji(name="icon_badge", id=1464996867376152764),
+        custom_id="station_memory:mega",
+        row=0
     )
     async def mega_memory_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Mega")
-
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="mega",
+            item_emoji="<:icon_badge:1464996867376152764>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Mega Memory Match"
+        )
+    # ====================================================================
     @discord.ui.button(
-      label="Night",
-      emoji=discord.PartialEmoji(name="item_mooncharm", id=1464990091721314304),
-      custom_id="station_memory:night",
-      row=0
+        label="Night",
+        emoji=discord.PartialEmoji(name="item_mooncharm", id=1464990091721314304),
+        custom_id="station_memory:night",
+        row=0
     )
     async def night_memory_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Night")
-
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="night",
+            item_emoji="<:item_mooncharm:1464990091721314304>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Night Memory Match"
+        )
+    # ====================================================================
     @discord.ui.button(
-      label="Extreme",
-      emoji=discord.PartialEmoji(name="item_cloudvial", id=1464990525122940948),
-      custom_id="station_memory:extreme",
-      row=0
+        label="Extreme",
+        emoji=discord.PartialEmoji(name="item_cloudvial", id=1464990525122940948),
+        custom_id="station_memory:extreme",
+        row=0
     )
     async def extreme_memory_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Extreme")
-
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="extreme",
+            item_emoji="<:item_cloudvial:1464990525122940948>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Extreme Memory Match"
+        )
+    # ====================================================================
     @discord.ui.button(
-      label="Winter",
-      emoji=discord.PartialEmoji(name="item_gingerbread", id=1464992612892147722),
-      custom_id="station_memory:winter",
-      row=0
+        label="Winter",
+        emoji=discord.PartialEmoji(name="item_gingerbread", id=1464992612892147722),
+        custom_id="station_memory:winter",
+        row=0
     )
     async def winter_memory_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Winter")
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="winter",
+            item_emoji="<:item_gingerbread:1464992612892147722>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Winter Memory Match"
+        )
 
-    #? --------------- Handle Click ---------------
-    async def handle_click(self, interaction: discord.Interaction, item: str):
-        """Handle button clicks and create reminders"""
-        destination_id = get_destination_channel_id()
-        
-        if not destination_id:
-            await interaction.response.send_message(
-                "❌ No destination channel set! Use `/set-destination` to set one.",
-                ephemeral=True
-            )
-            return
-        
-        destination_channel = interaction.client.get_channel(destination_id)
-        if not destination_channel:
-            await interaction.response.send_message(
-                "❌ Destination channel not found! Please set a new destination channel.",
-                ephemeral=True
-            )
-            return
-        
-        try:
-            # Get cooldown for this memory match
-            cooldown = STATION_COOLDOWNS.get(item)
-            
-            # Create reminder using the core service
-            reminder_time = reminder_service.create_reminder(
-                user_id=interaction.user.id,
-                item_name=item,
-                cooldown=cooldown,
-                channel_id=destination_id,
-                username=interaction.user.name
-            )
-            
-            # Format reminder time for display
-            reminder_time_str = reminder_service.format_reminder_time(reminder_time)
-            cooldown_str = str(cooldown)
-            
-            await interaction.response.send_message(
-                f"✅ Reminder set for **{item}** Memory Match!\n"
-                f"⏱️ You'll be pinged on {reminder_time_str} (in {cooldown_str}).",
-                ephemeral=True
-            )
-            
-            print(f"Station Memory: {interaction.user.name} set reminder for {item} - reminder on {reminder_time_str} ({cooldown_str})")
-            
-        except Exception as e:
-            await interaction.response.send_message(
-                f"❌ Error: {str(e)}",
-                ephemeral=True
-            )
-            print(f"Error in planter caustic panel: {e}")
+
 
 # ===========================================================================
 # ========================= COG SETUP =========================

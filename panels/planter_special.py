@@ -2,10 +2,10 @@ import discord
 from discord.ext import commands
 from core.reminder_service import ReminderService, CooldownConfig, get_reminder_checker
 from core.config_service import (
-    get_destination_channel_id,
     get_panel_message,
     save_panel_message
 )
+from core.click_handler_service import handle_panel_click
 
 # ===========================================================================
 # ========================= STORAGE SETUP =========================
@@ -18,18 +18,16 @@ PANEL_NAME = "planter_special"  # Panel identifier for config storage
 #   CooldownConfig(days=36)                    # 36 days
 #   CooldownConfig(hours=1, minutes=30)        # 1 hour 30 minutes
 #   CooldownConfig(days=2, hours=5, minutes=15) # 2 days, 5 hours, 15 minutes
-PLANTER_COOLDOWNS = {
-    "Super Smoothie": CooldownConfig(days=36),
-    "Glue": CooldownConfig(days=14),
-    "Stinger": CooldownConfig(days=14),
-    "Swirled Wax": CooldownConfig(days=0),
-    "Loaded Dice": CooldownConfig(days=30),
-    "Purple Potion": CooldownConfig(days=0),
-    "Neonberry": CooldownConfig(days=7),
-    "Red Extract": CooldownConfig(days=30),
-    "Enzyme": CooldownConfig(days=30),
-    "Blue Extract": CooldownConfig(days=30),
-    "Oil": CooldownConfig(days=30),
+COOLDOWN_MAP = {
+    "smoothie": CooldownConfig(days=36),
+    "glue": CooldownConfig(days=14),
+    "stinger": CooldownConfig(days=14),
+    "loadeddice": CooldownConfig(days=30),
+    "neonberry": CooldownConfig(days=7),
+    "redextract": CooldownConfig(days=30),
+    "enzyme": CooldownConfig(days=30),
+    "blueextract": CooldownConfig(days=30),
+    "oil": CooldownConfig(days=30),
 }
 
 # Initialize reminder service (uses centralized config by default)
@@ -39,207 +37,246 @@ reminder_service = ReminderService("planter_special", use_centralized_config=Tru
 # ========================= PANEL VIEW =========================
 # ===========================================================================
 class PlanterSpecialView(discord.ui.View):
+    # ====================================================================
     def __init__(self):
         super().__init__(timeout=None)
+    # ====================================================================
     
-    #? --------------- Build Embed ---------------
+    
+    #? --------------------------- Build Embed ---------------------------
     @staticmethod
     def get_embed():
+        # ----------------------------------------------------------------
         """Create and return the embed for this special planter combo panel"""
+        # ----------------------------------------------------------------
         embed = discord.Embed(
             title="Guaranteed Insane Special Drops",
             description=(
-              "Certain planters have special placement combos that guarantee specific drops.\n"
-              "Each combo has its own cooldown.\n\n"
-              "⬇️ Use this chart for guaranteed placements."
+                "Certain planters have special placement combos that guarantee specific drops.\n"
+                "Each combo has its own cooldown.\n\n"
+                "⬇️ Use this chart for guaranteed placements."
             ),
             color=discord.Color.from_str("0xA7342B"),
             url="https://bee-swarm-simulator.fandom.com/wiki/Planter#Permanent"
         )
         embed.set_author(
-          name="Special Planter Combo Tracker",
-          icon_url="https://cdn.discordapp.com/emojis/926225469827870782.webp?size=160"
+            name="Special Planter Combo Tracker",
+            icon_url="https://cdn.discordapp.com/emojis/926225469827870782.webp?size=160"
         )
         embed.set_footer(
-          text="If you just received the item, select the same item below to start its cooldown reminder.",
-          icon_url="https://cdn.discordapp.com/emojis/1463915624244973609.webp?size=80"
+            text="If you just received the item, select the same item below to start its cooldown reminder.",
+            icon_url="https://cdn.discordapp.com/emojis/1463915624244973609.webp?size=80"
         )
         embed.set_image(url="https://i.ytimg.com/vi/F22ZY-hmx5Q/maxresdefault.jpg")
+        
 
         embed.add_field(
-          name="Row 1",
-          value=(
-              "`36 Days` <:item_smoothie:1464852505992106079> \+ <:planter_plastic:1462393814911029271> → Any Fields\n"
-              "`14 Days` <:item_glue:1464852440527405056> \+ <:planter_candy:1462393769801289840> → <:field_stump:1464670339756982363> x 3\n"
-              "`14 Days` <:item_stinger:1464852541073522698> \+ <:planter_redclay:1462393818480381952> → <:field_clover:1464671060011122883> → <:field_spider:1464671182182682840> → <:field_cactus:1464671315138187596>"
-          ),
-          inline=False
+            name="Row 1",
+            value=(
+                "`36 Days` <:item_smoothie:1464852505992106079> \+ <:planter_plastic:1462393814911029271> → Any Fields\n"
+                "`14 Days` <:item_glue:1464852440527405056> \+ <:planter_candy:1462393769801289840> → <:field_stump:1464670339756982363> x 3\n"
+                "`14 Days` <:item_stinger:1464852541073522698> \+ <:planter_redclay:1462393818480381952> → <:field_clover:1464671060011122883> → <:field_spider:1464671182182682840> → <:field_cactus:1464671315138187596>"
+            ),
+            inline=False
         )
         embed.add_field(
-          name="Row 2",
-          value=(
-              "`30 Days` <:item_loadeddice:1464852480851706060> \+ <:planter_tacky:1462393832820965520> → <:field_mountain:1464671464996208947>\n"
-              "`⠀7 Days` <:item_neonberry:1464852580160241837> \+ <:planter_pesticide:1462393806803697897> → <:field_stump:1464670339756982363> → <:field_mountain:1464671464996208947> → <:field_coconut:1464671533837451325>"
-          ),
-          inline=False
+            name="Row 2",
+            value=(
+                "`30 Days` <:item_loadeddice:1464852480851706060> \+ <:planter_tacky:1462393832820965520> → <:field_mountain:1464671464996208947>\n"
+                "`⠀7 Days` <:item_neonberry:1464852580160241837> \+ <:planter_pesticide:1462393806803697897> → <:field_stump:1464670339756982363> → <:field_mountain:1464671464996208947> → <:field_coconut:1464671533837451325>"
+            ),
+            inline=False
         )
         embed.add_field(
-          name="Row 3",
-          value=(
-              "`30 Days` <:item_redextract:1464852356419158303> \+ <:planter_heattreated:1462393789447536862> → <:field_mushroom:1464670962833428768> → <:field_strawberry:1464671115786850476> → <:field_rose:1464671421861986420> → <:field_pepper:1464671501432389682>\n"
-              "`30 Days` <:item_enzyme:1464852397892309005> \+ <:planter_heattreated:1462393789447536862> → <:field_pineapple:1464671271286472978> x 3"
-          ),
-          inline=False
+            name="Row 3",
+            value=(
+                "`30 Days` <:item_redextract:1464852356419158303> \+ <:planter_heattreated:1462393789447536862> → <:field_mushroom:1464670962833428768> → <:field_strawberry:1464671115786850476> → <:field_rose:1464671421861986420> → <:field_pepper:1464671501432389682>\n"
+                "`30 Days` <:item_enzyme:1464852397892309005> \+ <:planter_heattreated:1462393789447536862> → <:field_pineapple:1464671271286472978> x 3"
+            ),
+            inline=False
         )
         embed.add_field(
-          name="Row 4",
-          value=(
-              "`30 Days` <:item_blueextract:1464852380582674719> \+ <:planter_hydroponic:1462393792832208927> → <:field_blueflower:1464671010711408742> → <:field_bamboo:1464671229167407187> → <:field_pinetree:1464671389737943142> → <:field_stump:1464670339756982363>\n"
-              "`30 Days` <:item_oil:1464852420818374770> \+ <:planter_hydroponic:1462393792832208927> → <:field_sunflower:1464670823863550095> x 3"
-          ),
-          inline=False
+            name="Row 4",
+            value=(
+                "`30 Days` <:item_blueextract:1464852380582674719> \+ <:planter_hydroponic:1462393792832208927> → <:field_blueflower:1464671010711408742> → <:field_bamboo:1464671229167407187> → <:field_pinetree:1464671389737943142> → <:field_stump:1464670339756982363>\n"
+                "`30 Days` <:item_oil:1464852420818374770> \+ <:planter_hydroponic:1462393792832208927> → <:field_sunflower:1464670823863550095> x 3"
+            ),
+            inline=False
         )
 
         return embed
+    # ====================================================================
 
-
-    # Row 1: 4 buttons
-    #? --------------- Row 1: 3 buttons ---------------
+    #? ------------------------ Row 1: 3 buttons -------------------------
     @discord.ui.button(
-      label="Super Smoothie",
-      emoji=discord.PartialEmoji(name="item_smoothie", id=1464852505992106079),
-      custom_id="planter_special:plastic_smoothie",
-      row=0
+        label="Super Smoothie",
+        emoji=discord.PartialEmoji(name="item_smoothie", id=1464852505992106079),
+        custom_id="planter_special:plastic_smoothie",
+        row=0
     )
     async def plastic_smoothie_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Super Smoothie")
-
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="smoothie",
+            item_emoji="<:item_smoothie:1464852505992106079>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Planter Combo",
+            success_item="Super Smoothie planter combo"
+        )
+    # ====================================================================
     @discord.ui.button(
-      label="Glue",
-      emoji=discord.PartialEmoji(name="item_glue", id=1464852440527405056),
-      custom_id="planter_special:candy_glue",
-      row=0
+        label="Glue",
+        emoji=discord.PartialEmoji(name="item_glue", id=1464852440527405056),
+        custom_id="planter_special:candy_glue",
+        row=0
     )
     async def candy_glue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Glue")
-
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="glue",
+            item_emoji="<:item_glue:1464852440527405056>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Planter Combo",
+            success_item="Glue planter combo"
+        )
+    # ====================================================================
     @discord.ui.button(
-      label="Stinger",
-      emoji=discord.PartialEmoji(name="item_stinger", id=1464852541073522698),
-      custom_id="planter_special:red_stinger",
-      row=0
+        label="Stinger",
+        emoji=discord.PartialEmoji(name="item_stinger", id=1464852541073522698),
+        custom_id="planter_special:red_stinger",
+        row=0
     )
     async def red_stinger_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Stinger")
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="stinger",
+            item_emoji="<:item_stinger:1464852541073522698>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Planter Combo",
+            success_item="Stinger planter combo"
+        )
+    # ====================================================================
 
-    #? --------------- Row 2: 2 buttons ---------------
+    #? ------------------------ Row 2: 2 buttons -------------------------
     @discord.ui.button(
-      label="Loaded Dice",
-      emoji=discord.PartialEmoji(name="item_loadeddice", id=1464852480851706060),
-      custom_id="planter_special:tacky_loadeddice",
-      row=1
+        label="Loaded Dice",
+        emoji=discord.PartialEmoji(name="item_loadeddice", id=1464852480851706060),
+        custom_id="planter_special:tacky_loadeddice",
+        row=1
     )
     async def tacky_loadeddice_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Loaded Dice")
-
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="loadeddice",
+            item_emoji="<:item_loadeddice:1464852480851706060>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Planter Combo",
+            success_item="Loaded Dice planter combo"
+        )
+    # ====================================================================
     @discord.ui.button(
-      label="Neonberry",
-      emoji=discord.PartialEmoji(name="item_neonberry", id=1464852580160241837),
-      custom_id="planter_special:pesticide_neonberry",
-      row=1
+        label="Neonberry",
+        emoji=discord.PartialEmoji(name="item_neonberry", id=1464852580160241837),
+        custom_id="planter_special:pesticide_neonberry",
+        row=1
     )
     async def pesticide_neonberry_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Neonberry")
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="neonberry",
+            item_emoji="<:item_neonberry:1464852580160241837>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Planter Combo",
+            success_item="Neonberry planter combo"
+        )
+    # ====================================================================
 
-    #? --------------- Row 3: 2 buttons ---------------
+    #? ------------------------ Row 3: 2 buttons -------------------------
     @discord.ui.button(
-      label="Red Extract",
-      emoji=discord.PartialEmoji(name="item_redextract", id=1464852356419158303),
-      custom_id="planter_special:heat_redextract",
-      row=2
+        label="Red Extract",
+        emoji=discord.PartialEmoji(name="item_redextract", id=1464852356419158303),
+        custom_id="planter_special:heat_redextract",
+        row=2
     )
     async def heat_red_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Red Extract")
-
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="redextract",
+            item_emoji="<:item_redextract:1464852356419158303>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Planter Combo",
+            success_item="Red Extract planter combo"
+        )
+    # ====================================================================
     @discord.ui.button(
-      label="Enzyme",
-      emoji=discord.PartialEmoji(name="item_enzyme", id=1464852397892309005),
-      custom_id="planter_special:heat_enzyme",
-      row=2
+        label="Enzyme",
+        emoji=discord.PartialEmoji(name="item_enzyme", id=1464852397892309005),
+        custom_id="planter_special:heat_enzyme",
+        row=2
     )
     async def heat_enzyme_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Enzyme")
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="enzyme",
+            item_emoji="<:item_enzyme:1464852397892309005>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Planter Combo",
+            success_item="Enzyme planter combo"
+        )
+    # ====================================================================
 
-    #? --------------- Row 4: 2 buttons ---------------
+    #? ------------------------ Row 4: 2 buttons -------------------------
     @discord.ui.button(
-      label="Blue Extracts",
-      emoji=discord.PartialEmoji(name="item_blueextract", id=1464852380582674719),
-      custom_id="planter_special:hydro_blueextract",
-      row=3
+        label="Blue Extracts",
+        emoji=discord.PartialEmoji(name="item_blueextract", id=1464852380582674719),
+        custom_id="planter_special:hydro_blueextract",
+        row=3
     )
     async def hydro_blue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Blue Extract")
-
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="blueextract",
+            item_emoji="<:item_blueextract:1464852380582674719>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Planter Combo",
+            success_item="Blue Extract planter combo"
+        )
+    # ====================================================================
     @discord.ui.button(
-      label="Oil",
-      emoji=discord.PartialEmoji(name="item_oil", id=1464852420818374770),
-      custom_id="planter_special:hydro_oil",
-      row=3
+        label="Oil",
+        emoji=discord.PartialEmoji(name="item_oil", id=1464852420818374770),
+        custom_id="planter_special:hydro_oil",
+        row=3
     )
     async def hydro_oil_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Oil")
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="oil",
+            item_emoji="<:item_oil:1464852420818374770>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Planter Combo",
+            success_item="Oil planter combo"
+        )
 
-    #? --------------- Handle Click ---------------
-    async def handle_click(self, interaction: discord.Interaction, item: str):
-        """Handle button clicks and create reminders"""
-        destination_id = get_destination_channel_id()
-        
-        if not destination_id:
-            await interaction.response.send_message(
-                "❌ No destination channel set! Use `/set-destination` to set one.",
-                ephemeral=True
-            )
-            return
-        
-        destination_channel = interaction.client.get_channel(destination_id)
-        if not destination_channel:
-            await interaction.response.send_message(
-                "❌ Destination channel not found! Please set a new destination channel.",
-                ephemeral=True
-            )
-            return
-        
-        try:
-            # Get cooldown for this specific planter
-            cooldown = PLANTER_COOLDOWNS.get(item)
-            
-            # Create reminder using the core service
-            reminder_time = reminder_service.create_reminder(
-                user_id=interaction.user.id,
-                item_name=item,
-                cooldown=cooldown,
-                channel_id=destination_id,
-                username=interaction.user.name
-            )
-            
-            # Format reminder time for display
-            reminder_time_str = reminder_service.format_reminder_time(reminder_time)
-            cooldown_str = str(cooldown)
-            
-            await interaction.response.send_message(
-                f"✅ Reminder set for special planter combo of **{item}**!\n"
-                f"⏱️ You'll be pinged on {reminder_time_str} (in {cooldown_str}).",
-                ephemeral=True
-            )
-            
-            print(f"Special Planter Combo: {interaction.user.name} set reminder for {item} - reminder on {reminder_time_str} ({cooldown_str})")
-            
-        except Exception as e:
-            await interaction.response.send_message(
-                f"❌ Error: {str(e)}",
-                ephemeral=True
-            )
-            print(f"Error in planter special panel: {e}")
+
 
 # ===========================================================================
 # ========================= COG SETUP =========================

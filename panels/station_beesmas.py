@@ -6,6 +6,7 @@ from core.config_service import (
     get_panel_message,
     save_panel_message
 )
+from core.click_handler_service import handle_panel_click
 
 # ===========================================================================
 # ========================= STORAGE SETUP =========================
@@ -18,16 +19,16 @@ PANEL_NAME = "station_beesmas"  # Panel identifier for config storage
 #   CooldownConfig(days=36)                    # 36 days
 #   CooldownConfig(hours=1, minutes=30)        # 1 hour 30 minutes
 #   CooldownConfig(days=2, hours=5, minutes=15) # 2 days, 5 hours, 15 minutes
-STATION_COOLDOWNS = {
-    "Stocking": CooldownConfig(hours=1),
-    "Feast": CooldownConfig(hours=1, minutes=30),
-    "Snow Bear": CooldownConfig(hours=1, minutes=30),
-    "Snow Machine": CooldownConfig(hours=2),
-    "Robo Party": CooldownConfig(hours=3),
-    "Riley Candle": CooldownConfig(hours=4),
-    "Samovar": CooldownConfig(hours=6),
-    "Onett Art": CooldownConfig(hours=8),
-    "Gummy Beacon": CooldownConfig(hours=8),
+COOLDOWN_MAP = {
+    "stocking": CooldownConfig(hours=1),
+    "feast": CooldownConfig(hours=1, minutes=30),
+    "snowbear": CooldownConfig(hours=1, minutes=30),
+    "snowmachine": CooldownConfig(hours=2),
+    "roboparty": CooldownConfig(hours=3),
+    "candle": CooldownConfig(hours=4),
+    "samovar": CooldownConfig(hours=6),
+    "onett": CooldownConfig(hours=8),
+    "gummybeacon": CooldownConfig(hours=8),
 }
 
 # Initialize reminder service (uses centralized config by default)
@@ -37,199 +38,229 @@ reminder_service = ReminderService("station_base", use_centralized_config=True)
 # ========================= PANEL VIEW =========================
 # ===========================================================================
 class StationBeesmasView(discord.ui.View):
+    # ====================================================================
     def __init__(self):
         super().__init__(timeout=None)
+    # ====================================================================
     
-    #? --------------- Build Embed ---------------
+
+    #? --------------------------- Build Embed ---------------------------
     @staticmethod
     def get_embed():
+        # ----------------------------------------------------------------
         """Create and return the embed for this beesmas station panel"""
-
+        # ----------------------------------------------------------------
         embed = discord.Embed(
             title="Beesmas Station Cooldown Reminders",
             description=(
-              "Track cooldowns for all Beesmas event stations.\n"
-              "Each station has its own activation rules and cooldown timer.\n\n"
-              "⬇️ Use this chart to view each station cooldown."
+                "Track cooldowns for all Beesmas event stations.\n"
+                "Each station has its own activation rules and cooldown timer.\n\n"
+                "⬇️ Use this chart to view each station cooldown."
             ),
-            color=discord.Color.from_str("0xFFFFFF"),
+            color=discord.Color.from_str("0xF46C55"),
             url="https://bee-swarm-simulator.fandom.com/wiki/Category:Machines"
         )
         embed.set_author(
-          name="Beesmas Station Tracker",
-          icon_url="https://cdn.discordapp.com/emojis/462596042106470400.webp?size=80"
+            name="Beesmas Station Tracker",
+            icon_url="https://media.discordapp.net/attachments/1464545436353433674/1466364006515081369/latest.png?ex=697c7966&is=697b27e6&hm=e704e8b502c46ebe8413e9e8e35e279a656a19edab647cd2033747df5396022f&=&format=webp&quality=lossless&width=179&height=179"
         )
         embed.set_footer(
-          text="If you just used a Beesmas station, select it below to start its cooldown reminder.",
-          icon_url="https://cdn.discordapp.com/emojis/1463915624244973609.webp?size=80"
+            text="If you just used a Beesmas station, select it below to start its cooldown reminder.",
+            icon_url="https://cdn.discordapp.com/emojis/1463915624244973609.webp?size=80"
         )
         embed.set_image(url="https://i.ytimg.com/vi/YEb_2jPeZqc/maxresdefault.jpg")
         
+
         embed.add_field(
-          name="\u200b",
-          value=(
-              "`1 Hour` → <:sticker_stocking:1465024944701313176> Stocking (Brown Bear)\n"
-              "`1 Hour 30 Minutes` → <:sticker_forkandknife:1465025577391231167> Beesmas Feast (Polar Bear)\n"
-              "`1 Hour 30 Minutes` → <:sticker_snowbear:1465028535629643867> Snow Bear (Panda Bear)\n"
-              "`2 Hours` → <:item_snowflake:1465027529684553758> Snow Machine (Bucko Bee)"
-          ),
-          inline=False
+            name="\u200b",
+            value=(
+                "`1 Hour` → <:sticker_stocking:1465024944701313176> Stocking (Brown Bear)\n"
+                "`1 Hour 30 Minutes` → <:sticker_forkandknife:1465025577391231167> Beesmas Feast (Polar Bear)\n"
+                "`1 Hour 30 Minutes` → <:sticker_snowbear:1465028535629643867> Snow Bear (Panda Bear)\n"
+                "`2 Hours` → <:item_snowflake:1465027529684553758> Snow Machine (Bucko Bee)"
+            ),
+            inline=False
         )
         embed.add_field(
-          name="\u200b",
-          value=(
-              "`3 Hours` → <:sticker_partyrobo:1465026484300419074> Robo Party Cake (Robo Bear)\n"
-              "`4 Hours` → <:beequip_candle:1465028727519051998> Honeyday Candle (Riley Bee)\n"
-              "`6 Hours` → <:sticker_yellowmug:1465026671282356264> Samovar (Dapper Bear)"
-          ),
-          inline=False
+            name="\u200b",
+            value=(
+                "`3 Hours` → <:sticker_partyrobo:1465026484300419074> Robo Party Cake (Robo Bear)\n"
+                "`4 Hours` → <:beequip_candle:1465028727519051998> Honeyday Candle (Riley Bee)\n"
+                "`6 Hours` → <:sticker_yellowmug:1465026671282356264> Samovar (Dapper Bear)"
+            ),
+            inline=False
         )
         embed.add_field(
-          name="\u200b",
-          value=(
-              "`8 Hours` → <:sticker_beekeeper:1465026845526462606> Lit Art (Onett)\n"
-              "`8 Hours` → <:sticker_gummybear:1465026964065620216> Gummy Beacon (Gummy Bear)"
-          ),
-          inline=False
+            name="\u200b",
+            value=(
+                "`8 Hours` → <:sticker_beekeeper:1465026845526462606> Lit Art (Onett)\n"
+                "`8 Hours` → <:sticker_gummybear:1465026964065620216> Gummy Beacon (Gummy Bear)"
+            ),
+            inline=False
         )
         
         return embed
+    # ====================================================================
 
-    #? --------------- Row 1: 4 buttons ---------------
+    #? ------------------------ Row 1: 4 buttons -------------------------
     @discord.ui.button(
-      label="Stocking",
-      emoji=discord.PartialEmoji(name="sticker_stocking", id=1465024944701313176),
-      custom_id="station_beesmas:stocking",
-      row=0
+        label="Stocking",
+        emoji=discord.PartialEmoji(name="sticker_stocking", id=1465024944701313176),
+        custom_id="station_beesmas:stocking",
+        row=0
     )
     async def stocking_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Stocking")
-
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="stocking",
+            item_emoji="<:sticker_stocking:1465024944701313176>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Stocking",
+        )
+    # ====================================================================
     @discord.ui.button(
-      label="Beesmas Feast",
-      emoji=discord.PartialEmoji(name="sticker_forkandknife", id=1465025577391231167),
-      custom_id="station_beesmas:beesmas_feast",
-      row=0
+        label="Beesmas Feast",
+        emoji=discord.PartialEmoji(name="sticker_forkandknife", id=1465025577391231167),
+        custom_id="station_beesmas:beesmas_feast",
+        row=0
     )
     async def feast_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Beesmas Feast")
-
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="feast",
+            item_emoji="<:sticker_forkandknife:1465025577391231167>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Beesmas Feast",
+        )
+    # ====================================================================
     @discord.ui.button(
-      label="Snow Bear",
-      emoji=discord.PartialEmoji(name="sticker_snowbear", id=1465028535629643867),
-      custom_id="station_beesmas:snow_bear",
-      row=0
+        label="Snow Bear",
+        emoji=discord.PartialEmoji(name="sticker_snowbear", id=1465028535629643867),
+        custom_id="station_beesmas:snow_bear",
+        row=0
     )
     async def snow_bear_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Snow Bear")
-
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="snowbear",
+            item_emoji="<:sticker_snowbear:1465028535629643867>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Snow Bear",
+        )
+    # ====================================================================
     @discord.ui.button(
-      label="Snow Machine",
-      emoji=discord.PartialEmoji(name="item_snowflake", id=1465027529684553758),
-      custom_id="station_beesmas:snow_machine",
-      row=0
+        label="Snow Machine",
+        emoji=discord.PartialEmoji(name="item_snowflake", id=1465027529684553758),
+        custom_id="station_beesmas:snow_machine",
+        row=0
     )
     async def snow_machine_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Snow Machine")
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="snowmachine",
+            item_emoji="<:item_snowflake:1465027529684553758>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Snow Machine",
+        )
+    # ====================================================================
 
     #? --------------- Row 2: 3 buttons ---------------
     @discord.ui.button(
-      label="Robo Party Cake",
-      emoji=discord.PartialEmoji(name="sticker_partyrobo", id=1465026484300419074),
-      custom_id="station_beesmas:robo_party",
-      row=1
+        label="Robo Party Cake",
+        emoji=discord.PartialEmoji(name="sticker_partyrobo", id=1465026484300419074),
+        custom_id="station_beesmas:robo_party",
+        row=1
     )
     async def robo_party_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Robo Party Cake")
-
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="roboparty",
+            item_emoji="<:sticker_partyrobo:1465026484300419074>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Robo Party",
+        )
+    # ====================================================================
     @discord.ui.button(
-      label="Honeyday Candle",
-      emoji=discord.PartialEmoji(name="beequip_candle", id=1465028727519051998),
-      custom_id="station_beesmas:riley_candle",
-      row=1
+        label="Honeyday Candle",
+        emoji=discord.PartialEmoji(name="beequip_candle", id=1465028727519051998),
+        custom_id="station_beesmas:riley_candle",
+        row=1
     )
     async def riley_candle_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Honeyday Candle")
-
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="candle",
+            item_emoji="<:beequip_candle:1465028727519051998>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Honeyday Candle",
+        )
+    # ====================================================================
     @discord.ui.button(
-      label="Samovar",
-      emoji=discord.PartialEmoji(name="sticker_yellowmug", id=1465026671282356264),
-      custom_id="station_beesmas:samovar",
-      row=1
+        label="Samovar",
+        emoji=discord.PartialEmoji(name="sticker_yellowmug", id=1465026671282356264),
+        custom_id="station_beesmas:samovar",
+        row=1
     )
     async def samovar_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Samovar")
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="samovar",
+            item_emoji="<:sticker_yellowmug:1465026671282356264>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Samovar",
+        )
+    # ====================================================================
 
     #? --------------- Row 3: 2 buttons ---------------
     @discord.ui.button(
-      label="Lit Art",
-      emoji=discord.PartialEmoji(name="sticker_beekeeper", id=1465026845526462606),
-      custom_id="station_beesmas:onett_art",
-      row=2
+        label="Lit Art",
+        emoji=discord.PartialEmoji(name="sticker_beekeeper", id=1465026845526462606),
+        custom_id="station_beesmas:onett_art",
+        row=2
     )
     async def onett_art_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Lit Art")
-
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="onett",
+            item_emoji="<:sticker_beekeeper:1465026845526462606>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Onett Lit Art",
+        )
+    # ====================================================================
     @discord.ui.button(
-      label="Gummy Beacon",
-      emoji=discord.PartialEmoji(name="sticker_gummybear", id=1465026964065620216),
-      custom_id="station_beesmas:gummy_beacon",
-      row=2
+        label="Gummy Beacon",
+        emoji=discord.PartialEmoji(name="sticker_gummybear", id=1465026964065620216),
+        custom_id="station_beesmas:gummy_beacon",
+        row=2
     )
     async def gummy_beacon_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.handle_click(interaction, "Gummy Beacon")
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="gummybeacon",
+            item_emoji="<:sticker_gummybear:1465026964065620216>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Gummy Beacon",
+        )
 
-    #? --------------- Handle Click ---------------
-    async def handle_click(self, interaction: discord.Interaction, item: str):
-        """Handle button clicks and create reminders"""
-        destination_id = get_destination_channel_id()
-        
-        if not destination_id:
-            await interaction.response.send_message(
-                "❌ No destination channel set! Use `/set-destination` to set one.",
-                ephemeral=True
-            )
-            return
-        
-        destination_channel = interaction.client.get_channel(destination_id)
-        if not destination_channel:
-            await interaction.response.send_message(
-                "❌ Destination channel not found! Please set a new destination channel.",
-                ephemeral=True
-            )
-            return
-        
-        try:
-            # Get cooldown for this specific planter
-            cooldown = STATION_COOLDOWNS.get(item)
-            
-            # Create reminder using the core service
-            reminder_time = reminder_service.create_reminder(
-                user_id=interaction.user.id,
-                item_name=item,
-                cooldown=cooldown,
-                channel_id=destination_id,
-                username=interaction.user.name
-            )
-            
-            # Format reminder time for display
-            reminder_time_str = reminder_service.format_reminder_time(reminder_time)
-            cooldown_str = str(cooldown)
-            
-            await interaction.response.send_message(
-                f"✅ Reminder set for **{item}**!\n"
-                f"⏱️ You'll be pinged on {reminder_time_str} (in {cooldown_str}).",
-                ephemeral=True
-            )
-            
-            print(f"Station Beesmas: {interaction.user.name} set reminder for {item} - reminder on {reminder_time_str} ({cooldown_str})")
 
-        except Exception as e:
-            await interaction.response.send_message(
-                f"❌ Error: {str(e)}",
-                ephemeral=True
-            )
-            print(f"Error in station beesmas panel: {e}")
 
 # ===========================================================================
 # ========================= COG SETUP =========================
