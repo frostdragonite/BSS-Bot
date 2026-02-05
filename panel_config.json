@@ -1,12 +1,50 @@
 {
   "destination_channel_id": 763048569606504471,
-  "panels": {},
+  "panels": {
+    "planter_caustic": {
+      "channel_id": 1464283169820774421,
+      "message_id": 1468806704568471655
+    },
+    "planter_swirled": {
+      "channel_id": 1464283169820774421,
+      "message_id": 1468806713888211217
+    },
+    "planter_special": {
+      "channel_id": 1464283169820774421,
+      "message_id": 1468806721664188650
+    },
+    "mob_bosses": {
+      "channel_id": 1464283169820774421,
+      "message_id": 1468806730539335801
+    },
+    "timekeeper_panel": {
+      "channel_id": 1464283169820774421,
+      "message_id": 1468806738378493983
+    },
+    "station_memory": {
+      "channel_id": 1464283169820774421,
+      "message_id": 1468806746406522995
+    },
+    "station_base": {
+      "channel_id": 1464283169820774421,
+      "message_id": 1468806754279227508
+    },
+    "station_beesmas": {
+      "channel_id": 1464283169820774421,
+      "message_id": 1468806763133534229
+    },
+    "favorite_panel": {
+      "channel_id": 1464283169820774421,
+      "message_id": 1468808104408907962
+    }
+  },
   "reminders": {
     "planter_caustic": {
-      "606483460348968971:Candy": {
+      "606483460348968971:candy": {
         "user_id": "606483460348968971",
         "username": "timeabler",
-        "item": "Candy",
+        "item_emoji": "<:planter_candy:1462393769801289840>",
+        "reminder_item_name": "Caustic Wax",
         "reminder_time": "2026-03-04T16:13:44.834224",
         "channel_id": "763048569606504471",
         "created_at": "2026-01-27T16:13:44.834255",
@@ -16,10 +54,11 @@
           "minutes": 0
         }
       },
-      "606483460348968971:Plastic": {
+      "606483460348968971:plastic": {
         "user_id": "606483460348968971",
         "username": "timeabler",
-        "item": "Plastic",
+        "item_emoji": "<:planter_plastic:1462393814911029271>",
+        "reminder_item_name": "Caustic Wax",
         "reminder_time": "2026-03-04T16:13:51.698493",
         "channel_id": "763048569606504471",
         "created_at": "2026-01-27T16:13:51.698523",
@@ -29,10 +68,11 @@
           "minutes": 0
         }
       },
-      "606483460348968971:Tacky": {
+      "606483460348968971:tacky": {
         "user_id": "606483460348968971",
         "username": "timeabler",
-        "item": "Tacky",
+        "item_emoji": "<:planter_tacky:1462393832820965520>",
+        "reminder_item_name": "Caustic Wax",
         "reminder_time": "2026-03-04T16:13:54.180151",
         "channel_id": "763048569606504471",
         "created_at": "2026-01-27T16:13:54.180177",
@@ -42,10 +82,11 @@
           "minutes": 0
         }
       },
-      "606483460348968971:Blue Clay": {
+      "606483460348968971:blueclay": {
         "user_id": "606483460348968971",
         "username": "timeabler",
-        "item": "Blue Clay",
+        "item_emoji": "<:planter_blueclay:1462393764453679289>",
+        "reminder_item_name": "Caustic Wax",
         "reminder_time": "2026-03-04T16:14:03.446444",
         "channel_id": "763048569606504471",
         "created_at": "2026-01-27T16:14:03.446453",
@@ -55,10 +96,11 @@
           "minutes": 0
         }
       },
-      "606483460348968971:Hydroponic": {
+      "606483460348968971:hydro": {
         "user_id": "606483460348968971",
         "username": "timeabler",
-        "item": "Hydroponic",
+        "item_emoji": "<:planter_hydroponic:1462393792832208927>",
+        "reminder_item_name": "Caustic Wax",
         "reminder_time": "2026-03-04T16:14:05.197307",
         "channel_id": "763048569606504471",
         "created_at": "2026-01-27T16:14:05.197334",
@@ -68,10 +110,11 @@
           "minutes": 0
         }
       },
-      "606483460348968971:Red Clay": {
+      "606483460348968971:redclay": {
         "user_id": "606483460348968971",
         "username": "timeabler",
-        "item": "Red Clay",
+        "item_emoji": "<:planter_redclay:1462393818480381952>",
+        "reminder_item_name": "Caustic Wax",
         "reminder_time": "2026-03-04T16:14:06.789979",
         "channel_id": "763048569606504471",
         "created_at": "2026-01-27T16:14:06.790007",
@@ -82,6 +125,64 @@
         }
       }
     },
-    "station_base": {}
+    "station_base": {},
+    "planter_swirled": {
+      "606483460348968971:plastic": {
+        "user_id": "606483460348968971",
+        "username": "timeabler",
+        "item_emoji": "<:planter_plastic:1462393814911029271>",
+        "reminder_item_name": "Caustic Wax",
+        "reminder_time": "2026-03-05T16:54:34.894987",
+        "channel_id": "763048569606504471",
+        "created_at": "2026-01-28T16:54:34.895026",
+        "cooldown": {
+          "days": 36,
+          "hours": 0,
+          "minutes": 0
+        }
+      }
+    },
+    "mob_bosses": {
+      "297380184712282123:kingbeetle": {
+        "user_id": "297380184712282123",
+        "username": "frostdragonite",
+        "item_emoji": "\ud83d\udc1e",
+        "reminder_item_name": "King Beetle",
+        "reminder_time": "2026-02-05T21:37:58.786963",
+        "channel_id": "763048569606504471",
+        "created_at": "2026-02-04T21:37:58.786971",
+        "cooldown": {
+          "days": 1,
+          "hours": 0,
+          "minutes": 0
+        },
+        "cooldown_reduction_percent": 0
+      },
+      "297380184712282123:tunnelbear": {
+        "user_id": "297380184712282123",
+        "username": "frostdragonite",
+        "item_emoji": "<:sticker_stretchedbear:1465765080468558090>",
+        "reminder_item_name": "Tunnel Bear",
+        "reminder_time": "2026-02-06T21:38:00.588231",
+        "channel_id": "763048569606504471",
+        "created_at": "2026-02-04T21:38:00.588240",
+        "cooldown": {
+          "days": 2,
+          "hours": 0,
+          "minutes": 0
+        },
+        "cooldown_reduction_percent": 0
+      }
+    }
+  },
+  "user_settings": {
+    "297380184712282123": {
+      "panel_cooldown_reductions": {
+        "mob_bosses": 0
+      },
+      "timers": {
+        "puffshroom_timer": true
+      }
+    }
   }
 }
