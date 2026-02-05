@@ -111,3 +111,51 @@ def set_user_cooldown_reduction(user_id: int, percentage: int, panel_name: str =
         config["user_settings"][str(user_id)]["cooldown_reduction"] = percentage
     
     save_config(config)
+
+
+def get_user_timer_flags(user_id: int) -> Dict[str, bool]:
+    """Get all timer flags for a user (returns dict of timer_name -> bool)"""
+    config = load_config()
+    user_settings = config.get("user_settings", {})
+    user_data = user_settings.get(str(user_id), {})
+    return user_data.get("timers", {})
+
+
+def is_user_timer_enabled(user_id: int, timer_name: str) -> bool:
+    """Return True if the specified timer is enabled for the user"""
+    timers = get_user_timer_flags(user_id)
+    return bool(timers.get(timer_name, False))
+
+
+def toggle_user_timer_flag(user_id: int, timer_name: str) -> bool:
+    """Toggle a user's timer flag and return the new state (True=enabled)"""
+    config = load_config()
+    if "user_settings" not in config:
+        config["user_settings"] = {}
+
+    if str(user_id) not in config["user_settings"]:
+        config["user_settings"][str(user_id)] = {}
+
+    if "timers" not in config["user_settings"][str(user_id)]:
+        config["user_settings"][str(user_id)]["timers"] = {}
+
+    current = config["user_settings"][str(user_id)]["timers"].get(timer_name, False)
+    new_state = not bool(current)
+    config["user_settings"][str(user_id)]["timers"][timer_name] = new_state
+    save_config(config)
+    return new_state
+
+
+def get_users_with_timer_flag(timer_name: str) -> list:
+    """Return list of user IDs (ints) who have the timer flag enabled"""
+    config = load_config()
+    user_settings = config.get("user_settings", {})
+    result = []
+    for user_id_str, data in user_settings.items():
+        timers = data.get("timers", {})
+        if timers.get(timer_name):
+            try:
+                result.append(int(user_id_str))
+            except ValueError:
+                continue
+    return result
