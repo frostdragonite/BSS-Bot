@@ -1,8 +1,11 @@
+import asyncio
 import discord
 from discord.ext import commands
 from core.config_service import (
     toggle_user_timer_flag,
+    clear_panel_message,
     get_panel_message,
+    get_restore_delay,
     save_panel_message
 )
 
@@ -70,8 +73,13 @@ class TimekeeperView(discord.ui.View):
         try:
             new_state = toggle_user_timer_flag(interaction.user.id, "mondo_timer")
             status = "enabled" if new_state else "disabled"
+            
+            message = f"{ '✅' if new_state else '❌' } Mondo Timer is {status}"
+            if new_state:
+              message += "\n⏱️ You'll be pinged on every :00 minute mark."
+
             await interaction.response.send_message(
-                f"{ '✅' if new_state else '❌' } Mondo Timer is {status}\n⏱️ You'll be pinged on every :00 minute mark.",
+                message,
                 ephemeral=True
             )
             print(f"Timekeeper: {interaction.user.name} toggled Mondo Timer -> {new_state}")
@@ -88,8 +96,13 @@ class TimekeeperView(discord.ui.View):
         try:
             new_state = toggle_user_timer_flag(interaction.user.id, "puffshroom_timer")
             status = "enabled" if new_state else "disabled"
+            
+            message = f"{ '✅' if new_state else '❌' } Puffshroom Timer is {status}"
+            if new_state:
+              message += "\n⏱️ You'll be pinged on every :15 and :45 minute mark."
+
             await interaction.response.send_message(
-                f"{ '✅' if new_state else '❌' } Puffshroom Timer is {status}\n⏱️ You'll be pinged on every :15 and :45 minute mark.",
+                message,
                 ephemeral=True
             )
             print(f"Timekeeper: {interaction.user.name} toggled Puffshroom Timer -> {new_state}")
@@ -109,6 +122,9 @@ class TimekeeperPanel(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         """Restore panel message on bot startup"""
+        delay = get_restore_delay(PANEL_NAME)
+        if delay > 0:
+            await asyncio.sleep(delay)
         panel_info = get_panel_message(PANEL_NAME)
         if panel_info:
             try:
@@ -123,11 +139,8 @@ class TimekeeperPanel(commands.Cog):
                         await message.edit(view=view)
                         print(f"Restored Timekeeper panel in #{channel.name} (Message ID: {message_id})")
                     except discord.NotFound:
-                        embed = TimekeeperView.get_embed()
-                        view = TimekeeperView()
-                        new_message = await channel.send(embed=embed, view=view)
-                        save_panel_message(PANEL_NAME, channel_id, new_message.id)
-                        print(f"Recreated Timekeeper panel in #{channel.name} (old message was deleted)")
+                        clear_panel_message(PANEL_NAME)
+                        print(f"Timekeeper panel message was deleted; cleared from config.")
             except Exception as e:
                 print(f"Error restoring Timekeeper panel: {e}")
 

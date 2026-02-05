@@ -42,6 +42,21 @@ def set_destination_channel_id(channel_id: int):
     config["destination_channel_id"] = channel_id
     save_config(config)
 
+# Order and delay for panel restore on startup (avoids Discord API rate limits)
+RESTORE_DELAY_SECONDS = 0.7
+RESTORE_ORDER = [
+    "planter_caustic", "planter_swirled", "planter_special", "mob_bosses",
+    "timekeeper_panel", "station_memory", "station_base", "station_beesmas", "favorite_panel",
+]
+
+def get_restore_delay(panel_name: str) -> float:
+    """Return seconds to wait before restoring this panel (staggered to avoid rate limits)."""
+    try:
+        idx = RESTORE_ORDER.index(panel_name)
+        return idx * RESTORE_DELAY_SECONDS
+    except ValueError:
+        return 0.0
+
 def get_panel_message(panel_name: str) -> Optional[Dict[str, Any]]:
     """Get panel message info for a specific panel"""
     config = load_config()
@@ -59,6 +74,12 @@ def save_panel_message(panel_name: str, channel_id: int, message_id: int):
         "message_id": message_id
     }
     save_config(config)
+
+def clear_panel_message(panel_name: str):
+    """Remove saved panel message (e.g. when the message was deleted)."""
+    config = load_config()
+    if config.get("panels", {}).pop(panel_name, None) is not None:
+        save_config(config)
 
 def get_reminders(panel_name: str) -> Dict[str, Any]:
     """Get reminders for a specific panel"""

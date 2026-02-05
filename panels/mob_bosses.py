@@ -1,8 +1,11 @@
+import asyncio
 import discord
 from discord.ext import commands
 from core.reminder_service import ReminderService, CooldownConfig, get_reminder_checker
 from core.config_service import (
+    clear_panel_message,
     get_panel_message,
+    get_restore_delay,
     save_panel_message
 )
 from core.click_handler_service import handle_panel_click
@@ -216,6 +219,9 @@ class MobBosses(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         """Restore panel message on bot startup"""
+        delay = get_restore_delay(PANEL_NAME)
+        if delay > 0:
+            await asyncio.sleep(delay)
         panel_info = get_panel_message(PANEL_NAME)
         if panel_info:
             try:
@@ -226,17 +232,12 @@ class MobBosses(commands.Cog):
                 if channel:
                     try:
                         message = await channel.fetch_message(message_id)
-                        # Message exists, re-add the view to make buttons work
                         view = MobBossesView()
                         await message.edit(view=view)
                         print(f"Restored Bosses panel in #{channel.name} (Message ID: {message_id})")
                     except discord.NotFound:
-                        # Message was deleted, create a new one
-                        embed = MobBossesView.get_embed()
-                        view = MobBossesView()
-                        new_message = await channel.send(embed=embed, view=view)
-                        save_panel_message(PANEL_NAME, channel_id, new_message.id)
-                        print(f"Recreated Bosses panel in #{channel.name} (old message was deleted)")
+                        clear_panel_message(PANEL_NAME)
+                        print(f"Bosses panel message was deleted; cleared from config.")
                     except Exception as e:
                         print(f"Error restoring panel message: {e}")
             except Exception as e:

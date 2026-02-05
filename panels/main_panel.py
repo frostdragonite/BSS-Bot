@@ -63,10 +63,6 @@ PANEL_ORDER = [
         "class": "MobBossesView"
     },
     {
-        "module": "timekeeper_panel",
-        "class": "TimekeeperView"
-    },
-    {
         "module": "station_memory",
         "class": "StationMemoryView"
     },
@@ -77,6 +73,10 @@ PANEL_ORDER = [
     {
         "module": "station_beesmas",
         "class": "StationBeesmasView"
+    },
+    {
+        "module": "timekeeper_panel",
+        "class": "TimekeeperView"
     },
 ]
 
