@@ -6,7 +6,7 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
-from core.config_service import CONFIG_FILE, load_config
+from core.config_service import CONFIG_FILE, load_config, set_destination_channel_id
 
 # Friendly names for embed field titles (Favorite panel omitted; its reminders live under the actual panels)
 PANEL_DISPLAY_NAMES = {
@@ -27,6 +27,31 @@ MY_REMINDERS_SKIP_PANELS = {"favorite_panel"}
 class AdminCommands(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+
+    @discord.app_commands.command(
+        name="set-destination",
+        description="Set the channel where reminder pings and periodic timer pings are sent (admin only)."
+    )
+    @discord.app_commands.checks.has_permissions(administrator=True)
+    @discord.app_commands.describe(channel="Channel for pings (default: this channel)")
+    async def set_destination(
+        self,
+        interaction: discord.Interaction,
+        channel: discord.TextChannel | None = None,
+    ):
+        """Set the destination channel for reminder and timer pings."""
+        target = channel or interaction.channel
+        if not isinstance(target, (discord.TextChannel, discord.Thread)):
+            await interaction.response.send_message(
+                "❌ Please choose a text channel (or use this channel).",
+                ephemeral=True
+            )
+            return
+        set_destination_channel_id(target.id)
+        await interaction.response.send_message(
+            f"✅ Destination channel set to {target.mention}. Reminder and timer pings will be sent there.",
+            ephemeral=True
+        )
 
     @discord.app_commands.command(
         name="dump-panel-config",
