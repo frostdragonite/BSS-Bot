@@ -68,43 +68,43 @@ class FavoritePanelView(discord.ui.View):
         embed.set_image(url="https://pbs.twimg.com/profile_banners/822099513397514240/1756452043/1500x500")
         
 
-        embed.add_field(
-            name="\u200b",
-            value=(
-                "`1 Hour` → <:sticker_hourglass:1465022845800157255> Wealth Clock\n"
-                "`4 Hours` → <:token_honey:1465023103477219329> Honey Storm\n"
-                "`1 Days 12 Hours` → <:sticker_nymph:1465764975778861178> Stickbug"
-            ),
-            inline=False
-        )
-        embed.add_field(
-            name="\u200b",
-            value=(
-                "`1 Day` → 🐞 King Beetle\n"
-                "`2 Days` → <:sticker_stretchedbear:1465765080468558090> Tunnel Bear\n"
-                "`1 Day 12 Hours` → 🦀 Coconut Crab\n"
-                "`4 Days` → <:sticker_snail:1465765046301757555> Stump Snail"
-            ),
-            inline=False
-        )
-        embed.add_field(
-            name="\u200b",
-            value=(
-                "`1 Hour 30 Minutes` → <:sticker_snowbear:1465028535629643867> Snow Bear (Panda Bear)\n"
-                "`3 Hours` → <:sticker_partyrobo:1465026484300419074> Robo Party Cake (Robo Bear)\n"
-                "`4 Hours` → <:beequip_candle:1465028727519051998> Honeyday Candle (Riley Bee)\n"
-                "`6 Hours` → <:sticker_yellowmug:1465026671282356264> Samovar (Dapper Bear)"
-            ),
-            inline=False
-        )
-        embed.add_field(
-            name="\u200b",
-            value=(
-                "`22 Hours` → ☄️ Mythic Meteor\n"
-                "`22 Hours` → <:item_glue:1464852440527405056> Glue Dispenser"
-            ),
-            inline=False
-        )
+        # embed.add_field(
+        #     name="\u200b",
+        #     value=(
+        #         "`1 Hour` → <:sticker_hourglass:1465022845800157255> Wealth Clock\n"
+        #         "`4 Hours` → <:token_honey:1465023103477219329> Honey Storm\n"
+        #         "`1 Days 12 Hours` → <:sticker_nymph:1465764975778861178> Stickbug"
+        #     ),
+        #     inline=False
+        # )
+        # embed.add_field(
+        #     name="\u200b",
+        #     value=(
+        #         "`1 Day` → 🐞 King Beetle\n"
+        #         "`2 Days` → <:sticker_stretchedbear:1465765080468558090> Tunnel Bear\n"
+        #         "`1 Day 12 Hours` → 🦀 Coconut Crab\n"
+        #         "`4 Days` → <:sticker_snail:1465765046301757555> Stump Snail"
+        #     ),
+        #     inline=False
+        # )
+        # embed.add_field(
+        #     name="\u200b",
+        #     value=(
+        #         "`1 Hour 30 Minutes` → <:sticker_snowbear:1465028535629643867> Snow Bear (Panda Bear)\n"
+        #         "`3 Hours` → <:sticker_partyrobo:1465026484300419074> Robo Party Cake (Robo Bear)\n"
+        #         "`4 Hours` → <:beequip_candle:1465028727519051998> Honeyday Candle (Riley Bee)\n"
+        #         "`6 Hours` → <:sticker_yellowmug:1465026671282356264> Samovar (Dapper Bear)"
+        #     ),
+        #     inline=False
+        # )
+        # embed.add_field(
+        #     name="\u200b",
+        #     value=(
+        #         "`22 Hours` → ☄️ Mythic Meteor\n"
+        #         "`22 Hours` → <:item_glue:1464852440527405056> Glue Dispenser"
+        #     ),
+        #     inline=False
+        # )
         
         return embed
     # ====================================================================
@@ -405,7 +405,7 @@ class FavoritePanel(commands.Cog):
                 ephemeral=True
             )
             print(f"Panel '{PANEL_NAME}' set up in #{interaction.channel.name}")
-            
+
         except Exception as e:
             print(f"Error setting up panel '{PANEL_NAME}': {e}")
             await interaction.followup.send(

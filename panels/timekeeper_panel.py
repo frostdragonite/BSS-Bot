@@ -45,6 +45,17 @@ class TimekeeperView(discord.ui.View):
             text="You can select the event below, and you'll be notified when it starts.",
             icon_url="https://cdn.discordapp.com/emojis/1463915624244973609.webp?size=80"
         )
+        embed.set_image(url="https://i.ytimg.com/vi/YvG2TGzeOac/maxresdefault.jpg")
+        
+
+        embed.add_field(
+            name="\u200b",
+            value=(
+                "`XX:00` → 🐣 Mondo Chick\n"
+                "`XX:15 and XX:45` → <:sticker_puffshroom:1468791392816988293> Puffshroom"
+            ),
+            inline=False
+        )
         return embed
     # ====================================================================
 
@@ -68,7 +79,7 @@ class TimekeeperView(discord.ui.View):
             await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
     # ====================================================================
     @discord.ui.button(
-        label="Puffshroom Timer",
+        label="Puffshroom",
         emoji="<:sticker_puffshroom:1468791392816988293>",
         custom_id="timekeeper:puffshroom",
         row=0
