@@ -30,4 +30,12 @@ class MyBot(commands.Bot):
         print(f'Bot is ready!')
 
 bot = MyBot()
-bot.run('ODA3MDY1NzAxMjQwMTQzOTEy.G3lgo_.tTDd2aU7hnOg0ddFbWRWpUZvUYyq8qZezfOvew')
+
+# Get token from environment for safety (set in CI / GitHub Actions / host env)
+token = os.environ.get('DISCORD_BOT_TOKEN') or os.environ.get('DISCORD_TOKEN')
+if not token:
+    raise RuntimeError(
+        'Discord token not found. Set the DISCORD_BOT_TOKEN environment variable.'
+    )
+
+bot.run(token)
