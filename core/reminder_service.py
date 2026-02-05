@@ -360,8 +360,9 @@ class ReminderChecker(commands.Cog):
                             if mondo_users:
                                 timer_info = timers["mondo_timer"]
                                 mentions = " ".join([f"<@{user_id}>" for user_id in mondo_users])
+                                unix_timestamp = int(current_time.timestamp())
                                 await channel.send(
-                                    f"🔔 {current_time.strftime('%H:%M')} - {timer_info['emoji']} **{timer_info['name']}** timer is ready!\n"
+                                    f"🔔 <t:{unix_timestamp}:t> - {timer_info['emoji']} **{timer_info['name']}** timer is ready!\n"
                                     f"{mentions}"
                                 )
 
@@ -371,8 +372,9 @@ class ReminderChecker(commands.Cog):
                             if puff_users:
                                 timer_info = timers["puffshroom_timer"]
                                 mentions = " ".join([f"<@{user_id}>" for user_id in puff_users])
+                                unix_timestamp = int(current_time.timestamp())
                                 await channel.send(
-                                    f"🔔 {current_time.strftime('%H:%M')} - {timer_info['emoji']} **{timer_info['name']}** timer is ready!\n"
+                                    f"🔔 <t:{unix_timestamp}:t> - {timer_info['emoji']} **{timer_info['name']}** timer is ready!\n"
                                     f"{mentions}"
                                 )
 
