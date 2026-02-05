@@ -12,26 +12,26 @@ from core.config_service import (
 # ===========================================================================
 # ========================= STORAGE SETUP =========================
 # ===========================================================================
-PANEL_NAME = "timekeeper_panel"
+PANEL_NAME = "periodic_timer"
 
 # ===========================================================================
 # ========================= PANEL VIEW =========================
 # ===========================================================================
-class TimekeeperView(discord.ui.View):
+class PeriodicTimerView(discord.ui.View):
     # ====================================================================
     def __init__(self):
         super().__init__(timeout=None)
     # ====================================================================
-    
-    
+
+
     #? --------------------------- Build Embed ---------------------------
     @staticmethod
     def get_embed():
         # ----------------------------------------------------------------
-        """Create and return the embed for this timekeeper panel"""
+        """Create and return the embed for this periodic timer panel"""
         # ----------------------------------------------------------------
         embed = discord.Embed(
-            title="Real World Time Reminders",
+            title="Periodic Time Reminders",
             description=(
                 "Some of the events use real world timers.\n"
                 "This usually relies on the minute marks.\n\n"
@@ -41,7 +41,7 @@ class TimekeeperView(discord.ui.View):
             url="https://bee-swarm-simulator.fandom.com/wiki/Mobs"
         )
         embed.set_author(
-            name="Events Tracker",
+            name="Periodic Tracker",
             icon_url="https://cdn.discordapp.com/emojis/1462393771311235175.webp?size=64&quality=lossless"
         )
         embed.set_footer(
@@ -49,7 +49,7 @@ class TimekeeperView(discord.ui.View):
             icon_url="https://cdn.discordapp.com/emojis/1463915624244973609.webp?size=80"
         )
         embed.set_image(url="https://i.ytimg.com/vi/YvG2TGzeOac/maxresdefault.jpg")
-        
+
 
         embed.add_field(
             name="\u200b",
@@ -66,14 +66,14 @@ class TimekeeperView(discord.ui.View):
     @discord.ui.button(
         label="Mondo Chick",
         emoji="🐣",
-        custom_id="timekeeper:mondo",
+        custom_id="periodic_timer:mondo",
         row=0
     )
     async def mondo_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         try:
             new_state = toggle_user_timer_flag(interaction.user.id, "mondo_timer")
             status = "enabled" if new_state else "disabled"
-            
+
             message = f"{ '✅' if new_state else '❌' } Mondo Timer is {status}"
             if new_state:
               message += "\n⏱️ You'll be pinged on every :00 minute mark."
@@ -82,21 +82,21 @@ class TimekeeperView(discord.ui.View):
                 message,
                 ephemeral=True
             )
-            print(f"Timekeeper: {interaction.user.name} toggled Mondo Timer -> {new_state}")
+            print(f"Periodic timer: {interaction.user.name} toggled Mondo Timer -> {new_state}")
         except Exception as e:
             await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
     # ====================================================================
     @discord.ui.button(
         label="Puffshroom",
         emoji="<:sticker_puffshroom:1468791392816988293>",
-        custom_id="timekeeper:puffshroom",
+        custom_id="periodic_timer:puffshroom",
         row=0
     )
     async def puff_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         try:
             new_state = toggle_user_timer_flag(interaction.user.id, "puffshroom_timer")
             status = "enabled" if new_state else "disabled"
-            
+
             message = f"{ '✅' if new_state else '❌' } Puffshroom Timer is {status}"
             if new_state:
               message += "\n⏱️ You'll be pinged on every :15 and :45 minute mark."
@@ -105,7 +105,7 @@ class TimekeeperView(discord.ui.View):
                 message,
                 ephemeral=True
             )
-            print(f"Timekeeper: {interaction.user.name} toggled Puffshroom Timer -> {new_state}")
+            print(f"Periodic timer: {interaction.user.name} toggled Puffshroom Timer -> {new_state}")
         except Exception as e:
             await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
 
@@ -114,7 +114,7 @@ class TimekeeperView(discord.ui.View):
 # ===========================================================================
 # ========================= COG SETUP =========================
 # ===========================================================================
-class TimekeeperPanel(commands.Cog):
+class PeriodicTimer(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -135,16 +135,16 @@ class TimekeeperPanel(commands.Cog):
                 if channel:
                     try:
                         message = await channel.fetch_message(message_id)
-                        view = TimekeeperView()
+                        view = PeriodicTimerView()
                         await message.edit(view=view)
-                        print(f"Restored Timekeeper panel in #{channel.name} (Message ID: {message_id})")
+                        print(f"Restored Periodic timers panel in #{channel.name} (Message ID: {message_id})")
                     except discord.NotFound:
                         clear_panel_message(PANEL_NAME)
-                        print(f"Timekeeper panel message was deleted; cleared from config.")
+                        print(f"Periodic timers panel message was deleted; cleared from config.")
             except Exception as e:
-                print(f"Error restoring Timekeeper panel: {e}")
+                print(f"Error restoring Periodic timers panel: {e}")
 
 
 async def setup(bot: commands.Bot):
-    bot.add_view(TimekeeperView())
-    await bot.add_cog(TimekeeperPanel(bot))
+    bot.add_view(PeriodicTimerView())
+    await bot.add_cog(PeriodicTimer(bot))

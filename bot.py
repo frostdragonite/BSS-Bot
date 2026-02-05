@@ -17,7 +17,8 @@ class MyBot(commands.Bot):
         from core.reminder_service import get_reminder_checker
         reminder_checker = get_reminder_checker(self)
         await self.add_cog(reminder_checker)
-        
+        await self.load_extension("core.admin_commands")
+
         # Load panels from the panels folder
         for file in os.listdir("./panels"):
             if file.endswith(".py") and not file.startswith("__"):

@@ -25,7 +25,7 @@ AVAILABLE_PANELS = [
     "planter_swirled",
     "planter_special",
     "mob_bosses",
-    "timekeeper_panel",
+    "periodic_timer",
     "station_memory",
     "station_base",
     "station_beesmas",
@@ -75,8 +75,8 @@ PANEL_ORDER = [
         "class": "StationBeesmasView"
     },
     {
-        "module": "timekeeper_panel",
-        "class": "TimekeeperView"
+        "module": "periodic_timer",
+        "class": "PeriodicTimerView"
     },
 ]
 

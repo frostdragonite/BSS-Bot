@@ -1,19 +1,23 @@
 """
 Centralized Configuration Service
-Manages all panel configurations in a single panel_config.json file
+Manages all panel configurations in a single panel_config.json file.
+On Railway/hosting: set DATA_DIR to a persistent volume path (e.g. /data)
+so the config survives redeploys.
 """
 import json
 import os
 from typing import Optional, Dict, Any
 
-CONFIG_FILE = "panel_config.json"
+_CONFIG_DIR = os.environ.get("DATA_DIR", ".")
+CONFIG_FILE = os.path.join(_CONFIG_DIR, "panel_config.json")
 
 def load_config() -> Dict[str, Any]:
     """Load the entire configuration file"""
     if os.path.exists(CONFIG_FILE):
         try:
             with open(CONFIG_FILE, 'r') as f:
-                return json.load(f)
+                config = json.load(f)
+            return config
         except (json.JSONDecodeError, IOError) as e:
             print(f"Error loading config: {e}")
             return {}
@@ -26,6 +30,8 @@ def load_config() -> Dict[str, Any]:
 def save_config(config: Dict[str, Any]):
     """Save the entire configuration file"""
     try:
+        if _CONFIG_DIR != ".":
+            os.makedirs(_CONFIG_DIR, exist_ok=True)
         with open(CONFIG_FILE, 'w') as f:
             json.dump(config, f, indent=2)
     except IOError as e:
@@ -46,7 +52,7 @@ def set_destination_channel_id(channel_id: int):
 RESTORE_DELAY_SECONDS = 0.7
 RESTORE_ORDER = [
     "planter_caustic", "planter_swirled", "planter_special", "mob_bosses",
-    "timekeeper_panel", "station_memory", "station_base", "station_beesmas", "favorite_panel",
+    "periodic_timer", "station_memory", "station_base", "station_beesmas", "favorite_panel",
 ]
 
 def get_restore_delay(panel_name: str) -> float:
