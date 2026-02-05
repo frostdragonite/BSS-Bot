@@ -286,7 +286,7 @@ class PlanterSpecial(commands.Cog):
         self.bot = bot
         # Register this panel's reminder service with the global checker
         reminder_checker = get_reminder_checker(bot)
-        reminder_checker.register_service("planter_special", reminder_service)
+        reminder_checker.register_service(PANEL_NAME, reminder_service)
 
     #? --------------- Restore Panel on Startup ---------------
     @commands.Cog.listener()

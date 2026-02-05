@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from core.reminder_service import ReminderService, CooldownConfig, get_reminder_checker
 from core.config_service import (
-    get_destination_channel_id,
     get_panel_message,
     save_panel_message
 )
@@ -25,7 +24,6 @@ COOLDOWN_MAP = {
     "coconutcrab": CooldownConfig(days=1, hours=12),
     "stumpsnail": CooldownConfig(days=4),
     "commandochick": CooldownConfig(minutes=30),
-    # "mondochick": CooldownConfig(days=36),  # Special
     "stickbug": CooldownConfig(days=1, hours=12),
 }
 
@@ -184,24 +182,6 @@ class MobBossesView(discord.ui.View):
             reminder_item_name="Commando Chick",
             apply_cooldown_reduction=True,
         )
-    # ====================================================================        
-    # @discord.ui.button(
-    #   label="Mondo Chick",
-    #   emoji="🐣",
-    #   custom_id="mob_bosses:mondo_chick",
-    #   row=1
-    # )
-    # async def boss_mondo_chick_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-    #     await handle_panel_click(
-    #         interaction=interaction,
-    #         item_key="mondochick",
-    #         item_emoji="🐣",
-    #         item_name="Mondo Chick",
-    #         cooldown_map=COOLDOWN_MAP,
-    #         reminder_service=reminder_service,
-    #         panel_name="Mob Bosses",
-    #         success_item="Mondo Chick"
-    #     )
     # ====================================================================
     @discord.ui.button(
         label="Stickbug", 
@@ -230,7 +210,7 @@ class MobBosses(commands.Cog):
         self.bot = bot
         # Register this panel's reminder service with the global checker
         reminder_checker = get_reminder_checker(bot)
-        reminder_checker.register_service("mob_bosses", reminder_service)
+        reminder_checker.register_service(PANEL_NAME, reminder_service)
 
     #? --------------- Restore Panel on Startup ---------------
     @commands.Cog.listener()

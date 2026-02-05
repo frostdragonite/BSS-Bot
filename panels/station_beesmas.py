@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from core.reminder_service import ReminderService, CooldownConfig, get_reminder_checker
 from core.config_service import (
-    get_destination_channel_id,
     get_panel_message,
     save_panel_message
 )
@@ -172,7 +171,7 @@ class StationBeesmasView(discord.ui.View):
         )
     # ====================================================================
 
-    #? --------------- Row 2: 3 buttons ---------------
+    #? ------------------------ Row 2: 3 buttons -------------------------
     @discord.ui.button(
         label="Robo Party Cake",
         emoji=discord.PartialEmoji(name="sticker_partyrobo", id=1465026484300419074),
@@ -225,7 +224,7 @@ class StationBeesmasView(discord.ui.View):
         )
     # ====================================================================
 
-    #? --------------- Row 3: 2 buttons ---------------
+    #? ------------------------ Row 3: 2 buttons -------------------------
     @discord.ui.button(
         label="Lit Art",
         emoji=discord.PartialEmoji(name="sticker_beekeeper", id=1465026845526462606),
@@ -270,7 +269,7 @@ class StationBeesmas(commands.Cog):
         self.bot = bot
         # Register this panel's reminder service with the global checker
         reminder_checker = get_reminder_checker(bot)
-        reminder_checker.register_service("station_beesmas", reminder_service)
+        reminder_checker.register_service(PANEL_NAME, reminder_service)
 
     #? --------------- Restore Panel on Startup ---------------
     @commands.Cog.listener()
