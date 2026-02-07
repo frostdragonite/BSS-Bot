@@ -55,7 +55,8 @@ class PeriodicTimerView(discord.ui.View):
             name="\u200b",
             value=(
                 "`XX:00` → 🐣 Mondo Chick\n"
-                "`XX:15 and XX:45` → <:sticker_puffshroom:1468791392816988293> Puffshroom"
+                "`XX:15 and XX:45` → <:sticker_puffshroom:1468791392816988293> Puffshroom\n\n"
+                "**Remind 1 Minute Early** (button below): Get pinged 1 minute before the mark"
             ),
             inline=False
         )
@@ -109,6 +110,25 @@ class PeriodicTimerView(discord.ui.View):
         except Exception as e:
             await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
 
+    #? ------------------------ Row 1: Remind 1 Minute Early -------------------------
+    @discord.ui.button(
+        label="Remind 1 Minute Early",
+        style=discord.ButtonStyle.primary,
+        custom_id="periodic_timer:remind_1min_early",
+        row=1
+    )
+    async def remind_1min_early_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        try:
+            new_state = toggle_user_timer_flag(interaction.user.id, "remind_1min_early")
+            status = "enabled" if new_state else "disabled"
+            message = (
+                f"{'✅' if new_state else '❌'} **Remind 1 Minute Early** is {status}.\n"
+                "When enabled: Mondo pings at **:59**, Puffshroom at **:14** and **:44**."
+            )
+            await interaction.response.send_message(message, ephemeral=True)
+            print(f"Periodic timer: {interaction.user.name} toggled Remind 1 Minute Early -> {new_state}")
+        except Exception as e:
+            await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
 
 
 # ===========================================================================

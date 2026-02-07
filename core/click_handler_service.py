@@ -50,10 +50,15 @@ async def handle_panel_click(
         )
         return
     
+    # When Favorite panel forwards to another panel (e.g. mob_bosses), store reminder under that panel
+    storage_panel_override = panel_name if panel_name != reminder_service.panel_name else None
+
     try:
-        # Check if user already has a reminder for this item
-        existing_reminder = reminder_service.get_reminder_info(interaction.user.id, item_key)
-        
+        # Check if user already has a reminder for this item (in the storage panel)
+        existing_reminder = reminder_service.get_reminder_info(
+            interaction.user.id, item_key, panel_name_override=storage_panel_override
+        )
+
         if existing_reminder:
             # Reminder already exists - show options to cancel or reset
             await show_reminder_exists_prompt(
@@ -67,20 +72,21 @@ async def handle_panel_click(
                 reminder_service=reminder_service,
                 destination_id=destination_id,
                 panel_name=panel_name,
+                storage_panel_name=storage_panel_override,
                 success_item_name=success_item_name,
                 apply_cooldown_reduction=apply_cooldown_reduction
             )
             return
-        
+
         # Get cooldown for this specific item
         cooldown = cooldown_map.get(item_key)
-        
+
         # Get user's cooldown reduction if applicable
         cooldown_reduction = 0
         if apply_cooldown_reduction:
             cooldown_reduction = get_user_cooldown_reduction(interaction.user.id, panel_name)
-        
-        # Create reminder using the core service with cooldown reduction
+
+        # Create reminder using the core service with cooldown reduction (under storage panel)
         reminder_time = reminder_service.create_reminder(
             user_id=interaction.user.id,
             item_key=item_key,
@@ -89,7 +95,8 @@ async def handle_panel_click(
             cooldown=cooldown,
             channel_id=destination_id,
             username=interaction.user.name,
-            cooldown_reduction_percent=cooldown_reduction
+            cooldown_reduction_percent=cooldown_reduction,
+            storage_panel_override=storage_panel_override
         )
         
         # Format reminder time for display
@@ -141,6 +148,7 @@ class ReminderActionView(View):
         reminder_service: ReminderService,
         destination_id: int,
         panel_name: str,
+        storage_panel_name: Optional[str] = None,
         success_item_name: Optional[str] = None,
         apply_cooldown_reduction: bool = False
     ):
@@ -149,6 +157,7 @@ class ReminderActionView(View):
         self.item_key = item_key
         self.item_emoji = item_emoji
         self.reminder_item_name = reminder_item_name
+        self.storage_panel_name = storage_panel_name
         self.existing_reminder = existing_reminder
         self.cooldown_map = cooldown_map
         self.reminder_service = reminder_service
@@ -169,12 +178,12 @@ class ReminderActionView(View):
         """Cancel the existing reminder"""
         # ----------------------------------------------------------------
         try:
-            reminders = self.reminder_service.load_reminders()
+            reminders = self.reminder_service.load_reminders(panel_name_override=self.storage_panel_name)
             reminder_key = f"{self.user_id}:{self.item_key}"
             
             if reminder_key in reminders:
                 del reminders[reminder_key]
-                self.reminder_service.save_reminders(reminders)
+                self.reminder_service.save_reminders(reminders, panel_name_override=self.storage_panel_name)
             
             await interaction.response.send_message(
                 f"❌ Reminder for **{self.reminder_item_name}** has been cancelled.",
@@ -219,7 +228,8 @@ class ReminderActionView(View):
                 cooldown=cooldown,
                 channel_id=self.destination_id,
                 username=interaction.user.name,
-                cooldown_reduction_percent=cooldown_reduction
+                cooldown_reduction_percent=cooldown_reduction,
+                storage_panel_override=self.storage_panel_name
             )
             
             # Format reminder time for display
@@ -262,6 +272,7 @@ async def show_reminder_exists_prompt(
     reminder_service: ReminderService,
     destination_id: int,
     panel_name: str,
+    storage_panel_name: Optional[str] = None,
     success_item_name: Optional[str] = None,
     apply_cooldown_reduction: bool = False
 ) -> None:
@@ -289,6 +300,7 @@ async def show_reminder_exists_prompt(
             reminder_service=reminder_service,
             destination_id=destination_id,
             panel_name=panel_name,
+            storage_panel_name=storage_panel_name,
             success_item_name=success_item_name,
             apply_cooldown_reduction=apply_cooldown_reduction
         )

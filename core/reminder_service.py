@@ -137,15 +137,16 @@ class ReminderService:
     
 
     # ====================================================================
-    def load_reminders(self) -> Dict:
+    def load_reminders(self, panel_name_override: Optional[str] = None) -> Dict:
         # ----------------------------------------------------------------
-        """Load reminders from storage"""
+        """Load reminders from storage. Use panel_name_override to read from another panel (e.g. Favorite → mob_bosses)."""
         # ----------------------------------------------------------------
+        panel = panel_name_override if panel_name_override is not None else self.panel_name
         if self.use_centralized_config:
             from core.config_service import get_reminders
-            return get_reminders(self.panel_name)
+            return get_reminders(panel)
         else:
-            # Legacy mode: load from separate file
+            # Legacy mode: load from separate file (override not used)
             if os.path.exists(self.reminders_file):
                 try:
                     with open(self.reminders_file, 'r') as f:
@@ -155,18 +156,19 @@ class ReminderService:
                     return {}
             return {}
     # ====================================================================
-    
+
 
     # ====================================================================
-    def save_reminders(self, reminders: Dict):
+    def save_reminders(self, reminders: Dict, panel_name_override: Optional[str] = None):
         # ----------------------------------------------------------------
-        """Save reminders to storage"""
+        """Save reminders to storage. Use panel_name_override to write to another panel (e.g. Favorite → mob_bosses)."""
         # ----------------------------------------------------------------
+        panel = panel_name_override if panel_name_override is not None else self.panel_name
         if self.use_centralized_config:
             from core.config_service import save_reminders
-            save_reminders(self.panel_name, reminders)
+            save_reminders(panel, reminders)
         else:
-            # Legacy mode: save to separate file
+            # Legacy mode: save to separate file (override not used)
             try:
                 with open(self.reminders_file, 'w') as f:
                     json.dump(reminders, f, indent=2)
@@ -185,7 +187,8 @@ class ReminderService:
         cooldown: CooldownConfig,
         channel_id: int,
         username: str = None,
-        cooldown_reduction_percent: int = 0
+        cooldown_reduction_percent: int = 0,
+        storage_panel_override: Optional[str] = None
     ) -> datetime:
         # ----------------------------------------------------------------
         """
@@ -216,7 +219,7 @@ class ReminderService:
             When the reminder will trigger
         """
         # ----------------------------------------------------------------
-        reminders = self.load_reminders()
+        reminders = self.load_reminders(panel_name_override=storage_panel_override)
         reminder_key = f"{user_id}:{item_key}"
         
         # Apply cooldown reduction if provided
@@ -238,7 +241,7 @@ class ReminderService:
             "cooldown_reduction_percent": cooldown_reduction_percent
         }
         
-        self.save_reminders(reminders)
+        self.save_reminders(reminders, panel_name_override=storage_panel_override)
         return reminder_time
     # ====================================================================
     
@@ -278,11 +281,11 @@ class ReminderService:
     
 
     # ====================================================================
-    def get_reminder_info(self, user_id: int, item_key: str) -> Optional[Dict]:
+    def get_reminder_info(self, user_id: int, item_key: str, panel_name_override: Optional[str] = None) -> Optional[Dict]:
         # ----------------------------------------------------------------
-        """Get existing reminder info if it exists"""
+        """Get existing reminder info if it exists. Use panel_name_override to check another panel (e.g. Favorite → mob_bosses)."""
         # ----------------------------------------------------------------
-        reminders = self.load_reminders()
+        reminders = self.load_reminders(panel_name_override=panel_name_override)
         reminder_key = f"{user_id}:{item_key}"
         return reminders.get(reminder_key)
     # ====================================================================
@@ -353,10 +356,11 @@ class ReminderChecker(commands.Cog):
                             "mondo_timer": {"emoji": "🐣", "name": "Mondo Timer"},
                             "puffshroom_timer": {"emoji": "<:sticker_puffshroom:1468791392816988293>", "name": "Puffshroom Timer"}
                         }
-                        
-                        # Check Mondo Timer (every :00)
+                        early_user_ids = set(get_users_with_timer_flag("remind_1min_early"))
+
+                        # Mondo: :00 for normal users, :59 for "remind 1 min early" users
                         if minute == 0:
-                            mondo_users = get_users_with_timer_flag("mondo_timer")
+                            mondo_users = [u for u in get_users_with_timer_flag("mondo_timer") if u not in early_user_ids]
                             if mondo_users:
                                 timer_info = timers["mondo_timer"]
                                 mentions = " ".join([f"<@{user_id}>" for user_id in mondo_users])
@@ -365,16 +369,36 @@ class ReminderChecker(commands.Cog):
                                     f"🔔 <t:{unix_timestamp}:t> - {timer_info['emoji']} **{timer_info['name']}** timer is ready!\n"
                                     f"{mentions}"
                                 )
+                        if minute == 59:
+                            mondo_users = [u for u in get_users_with_timer_flag("mondo_timer") if u in early_user_ids]
+                            if mondo_users:
+                                timer_info = timers["mondo_timer"]
+                                mentions = " ".join([f"<@{user_id}>" for user_id in mondo_users])
+                                unix_timestamp = int(current_time.timestamp())
+                                await channel.send(
+                                    f"🔔 <t:{unix_timestamp}:t> - {timer_info['emoji']} **{timer_info['name']}** (1 min early) timer is ready!\n"
+                                    f"{mentions}"
+                                )
 
-                        # Check Puffshroom Timer (every :15 and :45)
+                        # Puffshroom: :15 and :45 for normal users, :14 and :44 for "remind 1 min early" users
                         if minute in (15, 45):
-                            puff_users = get_users_with_timer_flag("puffshroom_timer")
+                            puff_users = [u for u in get_users_with_timer_flag("puffshroom_timer") if u not in early_user_ids]
                             if puff_users:
                                 timer_info = timers["puffshroom_timer"]
                                 mentions = " ".join([f"<@{user_id}>" for user_id in puff_users])
                                 unix_timestamp = int(current_time.timestamp())
                                 await channel.send(
                                     f"🔔 <t:{unix_timestamp}:t> - {timer_info['emoji']} **{timer_info['name']}** timer is ready!\n"
+                                    f"{mentions}"
+                                )
+                        if minute in (14, 44):
+                            puff_users = [u for u in get_users_with_timer_flag("puffshroom_timer") if u in early_user_ids]
+                            if puff_users:
+                                timer_info = timers["puffshroom_timer"]
+                                mentions = " ".join([f"<@{user_id}>" for user_id in puff_users])
+                                unix_timestamp = int(current_time.timestamp())
+                                await channel.send(
+                                    f"🔔 <t:{unix_timestamp}:t> - {timer_info['emoji']} **{timer_info['name']}** (1 min early) timer is ready!\n"
                                     f"{mentions}"
                                 )
 
