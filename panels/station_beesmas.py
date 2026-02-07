@@ -34,7 +34,7 @@ COOLDOWN_MAP = {
 }
 
 # Initialize reminder service (uses centralized config by default)
-reminder_service = ReminderService("station_base", use_centralized_config=True)
+reminder_service = ReminderService("station_beesmas", use_centralized_config=True)
 
 # ===========================================================================
 # ========================= PANEL VIEW =========================

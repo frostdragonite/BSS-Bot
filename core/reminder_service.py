@@ -426,6 +426,11 @@ class ReminderChecker(commands.Cog):
                         item_name = reminder_data["reminder_item_name"]
                         
                         channel = self.bot.get_channel(channel_id)
+                        if channel is None:
+                            try:
+                                channel = await self.bot.fetch_channel(channel_id)
+                            except Exception:
+                                channel = None
                         if channel:
                             user = self.bot.get_user(user_id)
                             if user:
@@ -435,19 +440,17 @@ class ReminderChecker(commands.Cog):
                                 )
                                 print(f"[{panel_name}] Reminder sent: {reminder_data.get('username', user_id)} - {item_name} ready")
                             else:
-                                # User not cached, use mention format
                                 await channel.send(
                                     f"🔔 <@{user_id}> - {item_emoji} **{item_name}** cooldown is ready!\n"
                                     f"You can now use it again."
                                 )
                                 print(f"[{panel_name}] Reminder sent (user not cached): {user_id} - {item_name} ready")
-                        
-                        # Remove expired reminder
-                        del reminders[reminder_key]
+                            del reminders[reminder_key]
+                        else:
+                            print(f"[{panel_name}] Could not get channel {channel_id} for reminder {reminder_key}; will retry next run")
                         
                     except Exception as e:
                         print(f"[{panel_name}] Error sending reminder for {reminder_key}: {e}")
-                        # Remove problematic reminder
                         del reminders[reminder_key]
                 
                 # Save updated reminders
@@ -501,6 +504,11 @@ class ReminderChecker(commands.Cog):
                     item_emoji = reminder_data.get("item_emoji", "")
                     item_name = reminder_data.get("reminder_item_name", "?")
                     channel = self.bot.get_channel(channel_id)
+                    if channel is None:
+                        try:
+                            channel = await self.bot.fetch_channel(channel_id)
+                        except Exception:
+                            channel = None
                     if channel:
                         user = self.bot.get_user(user_id)
                         if user:
@@ -514,7 +522,9 @@ class ReminderChecker(commands.Cog):
                                 f"You can now use it again."
                             )
                         print(f"[{LEGACY_PANEL}] Legacy reminder sent: {reminder_data.get('username', user_id)} - {item_name} ready")
-                    del reminders[reminder_key]
+                        del reminders[reminder_key]
+                    else:
+                        print(f"[{LEGACY_PANEL}] Could not get channel {channel_id} for legacy reminder {reminder_key}; will retry")
                 except Exception as e:
                     print(f"[{LEGACY_PANEL}] Error sending legacy reminder for {reminder_key}: {e}")
                     try:
@@ -531,9 +541,10 @@ class ReminderChecker(commands.Cog):
     @reminder_check.before_loop
     async def before_reminder_check(self):
         # ----------------------------------------------------------------
-        """Wait until bot is ready before starting the task"""
+        """Wait until bot is ready, then run once immediately for already-expired reminders"""
         # ----------------------------------------------------------------
         await self.bot.wait_until_ready()
+        await self.reminder_check()
     # ====================================================================
 
 
