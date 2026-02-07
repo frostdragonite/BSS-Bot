@@ -56,7 +56,7 @@ class PeriodicTimerView(discord.ui.View):
             value=(
                 "`XX:00` → 🐣 Mondo Chick\n"
                 "`XX:15 and XX:45` → <:sticker_puffshroom:1468791392816988293> Puffshroom\n\n"
-                "**Remind 1 Minute Early** (button below): Get pinged 1 minute before the mark"
+                "**Remind 1 Minute Early**: Get pinged 1 minute before the mark"
             ),
             inline=False
         )

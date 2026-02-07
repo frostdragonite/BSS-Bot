@@ -456,8 +456,76 @@ class ReminderChecker(commands.Cog):
                     
             except Exception as e:
                 print(f"[{panel_name}] Error in reminder_check: {e}")
+
+        # Legacy: process reminders still stored under favorite_panel (pre-fix, before we
+        # started saving to the actual panel). Ensures old reminders still announce.
+        await self._process_legacy_favorite_panel_reminders()
     # ====================================================================
     
+
+    # ====================================================================
+    async def _process_legacy_favorite_panel_reminders(self):
+        # ----------------------------------------------------------------
+        """
+        Process reminders still stored under favorite_panel (legacy, from before
+        the fix that saves to the actual panel). Ensures old reminders still fire.
+        """
+        # ----------------------------------------------------------------
+        LEGACY_PANEL = "favorite_panel"
+        # Skip if already processed by the registered service
+        if LEGACY_PANEL in self.reminder_services:
+            return
+
+        try:
+            from core.config_service import get_reminders, save_reminders
+            reminders = get_reminders(LEGACY_PANEL)
+            if not isinstance(reminders, dict):
+                return
+
+            current_time = datetime.now()
+            expired_reminders = []
+            for reminder_key, reminder_data in list(reminders.items()):
+                if not isinstance(reminder_data, dict):
+                    continue
+                try:
+                    reminder_time = datetime.fromisoformat(reminder_data["reminder_time"])
+                    if current_time >= reminder_time:
+                        expired_reminders.append((reminder_key, reminder_data))
+                except (ValueError, KeyError):
+                    continue
+
+            for reminder_key, reminder_data in expired_reminders:
+                try:
+                    user_id = int(reminder_data["user_id"])
+                    channel_id = int(reminder_data["channel_id"])
+                    item_emoji = reminder_data.get("item_emoji", "")
+                    item_name = reminder_data.get("reminder_item_name", "?")
+                    channel = self.bot.get_channel(channel_id)
+                    if channel:
+                        user = self.bot.get_user(user_id)
+                        if user:
+                            await channel.send(
+                                f"🔔 {user.mention} - {item_emoji} **{item_name}** cooldown is ready!\n"
+                                f"You can now use it again."
+                            )
+                        else:
+                            await channel.send(
+                                f"🔔 <@{user_id}> - {item_emoji} **{item_name}** cooldown is ready!\n"
+                                f"You can now use it again."
+                            )
+                        print(f"[{LEGACY_PANEL}] Legacy reminder sent: {reminder_data.get('username', user_id)} - {item_name} ready")
+                    del reminders[reminder_key]
+                except Exception as e:
+                    print(f"[{LEGACY_PANEL}] Error sending legacy reminder for {reminder_key}: {e}")
+                    try:
+                        del reminders[reminder_key]
+                    except KeyError:
+                        pass
+
+            if expired_reminders:
+                save_reminders(LEGACY_PANEL, reminders)
+        except Exception as e:
+            print(f"[{LEGACY_PANEL}] Error in legacy reminder check: {e}")
 
     # ====================================================================
     @reminder_check.before_loop

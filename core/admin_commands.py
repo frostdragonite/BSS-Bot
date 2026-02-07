@@ -8,7 +8,7 @@ from discord.ext import commands
 
 from core.config_service import CONFIG_FILE, load_config, set_destination_channel_id
 
-# Friendly names for embed field titles (Favorite panel omitted; its reminders live under the actual panels)
+# Friendly names for embed field titles
 PANEL_DISPLAY_NAMES = {
     "planter_caustic": "Caustic Planter",
     "planter_swirled": "Swirled Planter",
@@ -18,10 +18,8 @@ PANEL_DISPLAY_NAMES = {
     "station_memory": "Memory Match",
     "station_base": "Base Station",
     "station_beesmas": "Beesmas Station",
+    "favorite_panel": "Favorites (legacy)",  # Old reminders from before we saved to actual panels
 }
-
-# Panels to skip in my-reminders (e.g. Favorite is a shortcut; reminders are under other panels)
-MY_REMINDERS_SKIP_PANELS = {"favorite_panel"}
 
 
 class AdminCommands(commands.Cog):
@@ -93,7 +91,7 @@ class AdminCommands(commands.Cog):
 
         fields = []
         for panel_name, panel_reminders in reminders_by_panel.items():
-            if panel_name in MY_REMINDERS_SKIP_PANELS or not isinstance(panel_reminders, dict):
+            if not isinstance(panel_reminders, dict):
                 continue
             entries = []
             for key, data in panel_reminders.items():
