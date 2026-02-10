@@ -183,13 +183,13 @@ class PlanterCausticView(discord.ui.View):
     @discord.ui.button(
         label="Red Clay",
         emoji=discord.PartialEmoji(name="planter_redclay", id=1462393818480381952),
-        custom_id="planter_caustic:red",
+        custom_id="planter_caustic:redclay",
         row=1
     )
     async def caustic_red_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await handle_panel_click(
             interaction,
-            item_key="red",
+            item_key="redclay",
             item_emoji="<:planter_redclay:1462393818480381952>",
             cooldown_map=COOLDOWN_MAP,
             reminder_service=reminder_service,
@@ -201,13 +201,13 @@ class PlanterCausticView(discord.ui.View):
     @discord.ui.button(
         label="Blue Clay",
         emoji=discord.PartialEmoji(name="planter_blueclay", id=1462393764453679289),
-        custom_id="planter_caustic:blue",
+        custom_id="planter_caustic:blueclay",
         row=1
     )
     async def caustic_blue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await handle_panel_click(
             interaction,
-            item_key="blue",
+            item_key="blueclay",
             item_emoji="<:planter_blueclay:1462393764453679289>",
             cooldown_map=COOLDOWN_MAP,
             reminder_service=reminder_service,
