@@ -126,7 +126,7 @@ class PlanterSpecialView(discord.ui.View):
             reminder_service=reminder_service,
             panel_name=PANEL_NAME,
             reminder_item_name="Planter Combo",
-            success_item="Super Smoothie planter combo"
+            success_item_name="Super Smoothie planter combo"
         )
     # ====================================================================
     @discord.ui.button(
@@ -144,7 +144,7 @@ class PlanterSpecialView(discord.ui.View):
             reminder_service=reminder_service,
             panel_name=PANEL_NAME,
             reminder_item_name="Planter Combo",
-            success_item="Glue planter combo"
+            success_item_name="Glue planter combo"
         )
     # ====================================================================
     @discord.ui.button(
@@ -162,7 +162,7 @@ class PlanterSpecialView(discord.ui.View):
             reminder_service=reminder_service,
             panel_name=PANEL_NAME,
             reminder_item_name="Planter Combo",
-            success_item="Stinger planter combo"
+            success_item_name="Stinger planter combo"
         )
     # ====================================================================
 
@@ -182,7 +182,7 @@ class PlanterSpecialView(discord.ui.View):
             reminder_service=reminder_service,
             panel_name=PANEL_NAME,
             reminder_item_name="Planter Combo",
-            success_item="Loaded Dice planter combo"
+            success_item_name="Loaded Dice planter combo"
         )
     # ====================================================================
     @discord.ui.button(
@@ -200,7 +200,7 @@ class PlanterSpecialView(discord.ui.View):
             reminder_service=reminder_service,
             panel_name=PANEL_NAME,
             reminder_item_name="Planter Combo",
-            success_item="Neonberry planter combo"
+            success_item_name="Neonberry planter combo"
         )
     # ====================================================================
 
@@ -220,7 +220,7 @@ class PlanterSpecialView(discord.ui.View):
             reminder_service=reminder_service,
             panel_name=PANEL_NAME,
             reminder_item_name="Planter Combo",
-            success_item="Red Extract planter combo"
+            success_item_name="Red Extract planter combo"
         )
     # ====================================================================
     @discord.ui.button(
@@ -238,7 +238,7 @@ class PlanterSpecialView(discord.ui.View):
             reminder_service=reminder_service,
             panel_name=PANEL_NAME,
             reminder_item_name="Planter Combo",
-            success_item="Enzyme planter combo"
+            success_item_name="Enzyme planter combo"
         )
     # ====================================================================
 
@@ -258,7 +258,7 @@ class PlanterSpecialView(discord.ui.View):
             reminder_service=reminder_service,
             panel_name=PANEL_NAME,
             reminder_item_name="Planter Combo",
-            success_item="Blue Extract planter combo"
+            success_item_name="Blue Extract planter combo"
         )
     # ====================================================================
     @discord.ui.button(
@@ -276,7 +276,7 @@ class PlanterSpecialView(discord.ui.View):
             reminder_service=reminder_service,
             panel_name=PANEL_NAME,
             reminder_item_name="Planter Combo",
-            success_item="Oil planter combo"
+            success_item_name="Oil planter combo"
         )
 
 

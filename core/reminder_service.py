@@ -7,6 +7,7 @@ import json
 import os
 from datetime import datetime, timedelta
 from typing import Dict, Optional, List
+import discord
 from discord.ext import tasks, commands
 
 # ========================================================================
@@ -292,6 +293,51 @@ class ReminderService:
 
 
 # ========================================================================
+# Helper function to get role emoji
+# ========================================================================
+async def get_user_role_emoji(user: discord.User, guild: Optional[discord.Guild] = None) -> Optional[str]:
+    """
+    Get emoji based on user's highest role icon (if available).
+    
+    Args:
+        user: Discord user
+        guild: Guild to check roles in
+    
+    Returns:
+        Role icon emoji string (custom emoji format) or None if no role icon found
+    """
+    # If user is a Member, we can check roles directly
+    if isinstance(user, discord.Member) and user.guild:
+        roles = [role for role in user.roles if role.name != "@everyone"]
+        if roles:
+            roles.sort(key=lambda r: r.position, reverse=True)
+            for role in roles:
+                # Check for Unicode emoji first (simplest)
+                if role.unicode_emoji:
+                    return role.unicode_emoji
+                # Check for custom emoji icon
+                if role.icon:
+                    try:
+                        # If it's a custom emoji, format it
+                        if hasattr(role.icon, 'name') and hasattr(role.icon, 'id'):
+                            return f"<:{role.icon.name}:{role.icon.id}>"
+                    except Exception:
+                        pass
+    
+    # If user is not a Member but we have guild, try to fetch member
+    if guild and isinstance(user, discord.User):
+        try:
+            member = await guild.fetch_member(user.id)
+            if member:
+                return await get_user_role_emoji(member, guild)
+        except Exception:
+            pass
+    
+    return None
+# ========================================================================
+
+
+# ========================================================================
 # Reminder Checker Background Task
 # ========================================================================
 class ReminderChecker(commands.Cog):
@@ -433,15 +479,37 @@ class ReminderChecker(commands.Cog):
                                 channel = None
                         if channel:
                             user = self.bot.get_user(user_id)
+                            guild = channel.guild if hasattr(channel, 'guild') else None
+                            
+                            # Get role emoji if available
+                            role_emoji = None
+                            if user and guild:
+                                try:
+                                    member = guild.get_member(user_id)
+                                    if member:
+                                        role_emoji = await get_user_role_emoji(member, guild)
+                                    else:
+                                        # Try fetching member if not cached
+                                        try:
+                                            member = await guild.fetch_member(user_id)
+                                            if member:
+                                                role_emoji = await get_user_role_emoji(member, guild)
+                                        except Exception:
+                                            pass
+                                except Exception:
+                                    pass
+                            
+                            role_prefix = f"{role_emoji} " if role_emoji else ""
+                            
                             if user:
                                 await channel.send(
-                                    f"🔔 {user.mention} - {item_emoji} **{item_name}** cooldown is ready!\n"
+                                    f"🔔 {role_prefix}{user.mention} - {item_emoji} **{item_name}** cooldown is ready!\n"
                                     f"You can now use it again."
                                 )
                                 print(f"[{panel_name}] Reminder sent: {reminder_data.get('username', user_id)} - {item_name} ready")
                             else:
                                 await channel.send(
-                                    f"🔔 <@{user_id}> - {item_emoji} **{item_name}** cooldown is ready!\n"
+                                    f"🔔 {role_prefix}<@{user_id}> - {item_emoji} **{item_name}** cooldown is ready!\n"
                                     f"You can now use it again."
                                 )
                                 print(f"[{panel_name}] Reminder sent (user not cached): {user_id} - {item_name} ready")
@@ -511,14 +579,36 @@ class ReminderChecker(commands.Cog):
                             channel = None
                     if channel:
                         user = self.bot.get_user(user_id)
+                        guild = channel.guild if hasattr(channel, 'guild') else None
+                        
+                        # Get role emoji if available
+                        role_emoji = None
+                        if user and guild:
+                            try:
+                                member = guild.get_member(user_id)
+                                if member:
+                                    role_emoji = await get_user_role_emoji(member, guild)
+                                else:
+                                    # Try fetching member if not cached
+                                    try:
+                                        member = await guild.fetch_member(user_id)
+                                        if member:
+                                            role_emoji = await get_user_role_emoji(member, guild)
+                                    except Exception:
+                                        pass
+                            except Exception:
+                                pass
+                        
+                        role_prefix = f"{role_emoji} " if role_emoji else ""
+                        
                         if user:
                             await channel.send(
-                                f"🔔 {user.mention} - {item_emoji} **{item_name}** cooldown is ready!\n"
+                                f"🔔 {role_prefix}{user.mention} - {item_emoji} **{item_name}** cooldown is ready!\n"
                                 f"You can now use it again."
                             )
                         else:
                             await channel.send(
-                                f"🔔 <@{user_id}> - {item_emoji} **{item_name}** cooldown is ready!\n"
+                                f"🔔 {role_prefix}<@{user_id}> - {item_emoji} **{item_name}** cooldown is ready!\n"
                                 f"You can now use it again."
                             )
                         print(f"[{LEGACY_PANEL}] Legacy reminder sent: {reminder_data.get('username', user_id)} - {item_name} ready")

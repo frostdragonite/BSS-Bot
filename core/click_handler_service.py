@@ -1,9 +1,118 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple, Union
 from datetime import datetime
 import discord
 from discord.ui import Button, View
 from core.config_service import get_destination_channel_id, get_user_cooldown_reduction
 from core.reminder_service import ReminderService, CooldownConfig
+
+# Cache last ephemeral message ID per (user_id, channel_id) so we can try to delete it
+# when the user sets another reminder (reduces clutter). Discord may not allow deleting
+# ephemeral messages via API; we try and ignore errors.
+_last_ephemeral: Dict[Tuple[int, int], int] = {}  # (user_id, channel_id) -> message_id
+
+
+def get_role_emoji(user: Union[discord.User, discord.Member], guild: Optional[discord.Guild] = None) -> Optional[str]:
+    """
+    Get emoji based on user's highest role icon (if available).
+    
+    Args:
+        user: Discord user or member
+        guild: Guild to check roles in (if user is not a Member)
+    
+    Returns:
+        Role icon emoji string (custom emoji format) or None if no role icon found
+    """
+    # If user is a Member, we can check roles directly
+    if isinstance(user, discord.Member) and user.guild:
+        # Get roles sorted by position (highest first), excluding @everyone
+        roles = [role for role in user.roles if role.name != "@everyone"]
+        if roles:
+            # Sort by position (highest first)
+            roles.sort(key=lambda r: r.position, reverse=True)
+            # Check each role for an icon/emoji
+            for role in roles:
+                if role.icon:
+                    # Role has a custom icon (image)
+                    # Discord.py doesn't expose icon URL directly, but we can use the icon property
+                    # For custom emoji icons, we'd need the emoji object
+                    if hasattr(role.icon, 'url'):
+                        # This is an image icon, not an emoji
+                        continue
+                if role.unicode_emoji:
+                    # Role has a Unicode emoji
+                    return role.unicode_emoji
+                # Check if role has a custom emoji icon (requires fetching)
+                # Note: Role.icon can be Emoji, PartialEmoji, or Asset
+                if role.icon and hasattr(role.icon, 'name') and hasattr(role.icon, 'id'):
+                    # Custom emoji icon
+                    return f"<:{role.icon.name}:{role.icon.id}>"
+    
+    # If user is not a Member but we have guild, try to fetch member
+    if guild and isinstance(user, discord.User):
+        # Note: This would require async, but we keep this function sync for simplicity
+        # In practice, if you need this, you'd need to make the function async
+        pass
+    
+    return None
+
+
+async def get_user_role_emoji(user: Union[discord.User, discord.Member], guild: Optional[discord.Guild] = None) -> Optional[str]:
+    """
+    Get emoji based on user's highest role icon (async version that can fetch member if needed).
+    
+    Args:
+        user: Discord user or member
+        guild: Guild to check roles in (if user is not a Member)
+    
+    Returns:
+        Role icon emoji string (custom emoji format) or None if no role icon found
+    """
+    # If user is a Member, we can check roles directly
+    if isinstance(user, discord.Member) and user.guild:
+        roles = [role for role in user.roles if role.name != "@everyone"]
+        if roles:
+            roles.sort(key=lambda r: r.position, reverse=True)
+            for role in roles:
+                # Check for Unicode emoji first (simplest)
+                if role.unicode_emoji:
+                    return role.unicode_emoji
+                # Check for custom emoji icon
+                if role.icon:
+                    # Try to get emoji representation
+                    try:
+                        # If it's a custom emoji, format it
+                        if hasattr(role.icon, 'name') and hasattr(role.icon, 'id'):
+                            return f"<:{role.icon.name}:{role.icon.id}>"
+                    except Exception:
+                        pass
+    
+    # If user is not a Member but we have guild, try to fetch member
+    if guild and isinstance(user, discord.User):
+        try:
+            member = await guild.fetch_member(user.id)
+            if member:
+                return await get_user_role_emoji(member, guild)
+        except Exception:
+            pass
+    
+    return None
+
+
+async def _try_delete_last_ephemeral(interaction: discord.Interaction) -> None:
+    """Try to delete the last ephemeral message we sent to this user in this channel."""
+    key = (interaction.user.id, interaction.channel_id)
+    if key not in _last_ephemeral:
+        return
+    msg_id = _last_ephemeral.pop(key, None)
+    if not msg_id or not interaction.channel:
+        return
+    try:
+        msg = await interaction.channel.fetch_message(msg_id)
+        if msg and msg.author == interaction.client.user:
+            await msg.delete()
+    except Exception:
+        pass  # Ephemeral messages often cannot be deleted via API; ignore
+
 
 # ========================================================================
 async def handle_panel_click(
@@ -105,19 +214,27 @@ async def handle_panel_click(
 
         reminder_time_unix_str = reminder_service.format_reminder_unix_time(reminder_time, type='F')
         cooldown_unix_str = reminder_service.format_reminder_unix_time(reminder_time, type='R')
-        
-        # Format success message
-        success_message_template: str = "✅ Reminder set for **{success_item}**!\n⏱️ You'll be pinged on {reminder_time_unix_str} (in {cooldown_unix_str})."
-        success_message = success_message_template.format(
-            success_item=success_item_name or reminder_item_name,
-            reminder_time_unix_str=reminder_time_unix_str,
-            cooldown_unix_str=cooldown_unix_str
+        display_name = success_item_name or reminder_item_name
+
+        # Try to delete previous ephemeral message for this user in this channel (if any)
+        await _try_delete_last_ephemeral(interaction)
+
+        # Format success message with emojis
+        success_message = (
+            f"✅ Reminder set for {item_emoji} **{display_name}**!\n"
+            f"⏱️ You'll be pinged on {reminder_time_unix_str} (in {cooldown_unix_str})."
         )
-        
+
         await interaction.response.send_message(
             success_message,
             ephemeral=True
         )
+        try:
+            orig = await interaction.original_response()
+            if orig and getattr(orig, "id", None):
+                _last_ephemeral[(interaction.user.id, interaction.channel_id)] = orig.id
+        except Exception:
+            pass
         
         print(f"{panel_name}: {interaction.user.name} set reminder for {item_key} - reminder on {reminder_time_str} ({cooldown_str})")
         
@@ -184,12 +301,19 @@ class ReminderActionView(View):
             if reminder_key in reminders:
                 del reminders[reminder_key]
                 self.reminder_service.save_reminders(reminders, panel_name_override=self.storage_panel_name)
-            
+
+            await _try_delete_last_ephemeral(interaction)
             await interaction.response.send_message(
-                f"❌ Reminder for **{self.reminder_item_name}** has been cancelled.",
+                f"❌ Reminder for {self.item_emoji} **{self.reminder_item_name}** has been cancelled.",
                 ephemeral=True
             )
-            
+            try:
+                orig = await interaction.original_response()
+                if orig and getattr(orig, "id", None):
+                    _last_ephemeral[(interaction.user.id, interaction.channel_id)] = orig.id
+            except Exception:
+                pass
+
             print(f"[{self.panel_name}] {interaction.user.name} cancelled reminder for {self.item_key}")
             
         except Exception as e:
@@ -236,19 +360,24 @@ class ReminderActionView(View):
             reminder_time_unix_str = self.reminder_service.format_reminder_unix_time(reminder_time, type='F')
             cooldown_unix_str = self.reminder_service.format_reminder_unix_time(reminder_time, type='R')
             
-            # Format success message
-            success_message_template: str = "🔄 Reminder reset for **{success_item}**!\n⏱️ You'll be pinged on {reminder_time} (in {cooldown})."
-            success_message = success_message_template.format(
-                success_item=self.success_item_name or self.reminder_item_name,
-                reminder_time=reminder_time_unix_str,
-                cooldown=cooldown_unix_str
+            # Try to delete previous ephemeral, then send new message with emojis
+            await _try_delete_last_ephemeral(interaction)
+            display_name = self.success_item_name or self.reminder_item_name
+            success_message = (
+                f"🔄 Reminder reset for {self.item_emoji} **{display_name}**!\n"
+                f"⏱️ You'll be pinged on {reminder_time_unix_str} (in {cooldown_unix_str})."
             )
-            
             await interaction.response.send_message(
                 success_message,
                 ephemeral=True
             )
-            
+            try:
+                orig = await interaction.original_response()
+                if orig and getattr(orig, "id", None):
+                    _last_ephemeral[(interaction.user.id, interaction.channel_id)] = orig.id
+            except Exception:
+                pass
+
             print(f"[{self.panel_name}] {interaction.user.name} reset reminder for {self.item_key}")
             
         except Exception as e:
@@ -282,14 +411,15 @@ async def show_reminder_exists_prompt(
     try:
         reminder_time = datetime.fromisoformat(existing_reminder["reminder_time"])
         reminder_time_unix_str = reminder_service.format_reminder_unix_time(reminder_time, type='F')
-        reminder_time_human_str = reminder_service.format_reminder_unix_time(reminder_time, type='F')
-        
+
+        await _try_delete_last_ephemeral(interaction)
+
         message_template = (
-            f"⏰ You already have a reminder set for **{reminder_item_name}**!\n"
-            f"⏱️ Currently set to trigger on {reminder_time_unix_str} ({reminder_time_human_str})\n\n"
+            f"⏰ You already have a reminder set for {item_emoji} **{reminder_item_name}**!\n"
+            f"⏱️ Currently set to trigger on {reminder_time_unix_str}\n"
             f"*Dismiss this message to keep the existing reminder*"
         )
-        
+
         view = ReminderActionView(
             user_id=user_id,
             item_key=item_key,
@@ -304,12 +434,18 @@ async def show_reminder_exists_prompt(
             success_item_name=success_item_name,
             apply_cooldown_reduction=apply_cooldown_reduction
         )
-        
+
         await interaction.response.send_message(
             message_template,
             view=view,
             ephemeral=True
         )
+        try:
+            orig = await interaction.original_response()
+            if orig and getattr(orig, "id", None):
+                _last_ephemeral[(interaction.user.id, interaction.channel_id)] = orig.id
+        except Exception:
+            pass
         
     except Exception as e:
         await interaction.response.send_message(
