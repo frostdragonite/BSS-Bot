@@ -5,6 +5,10 @@ from discord.ui import Button, View
 from core.config_service import get_destination_channel_id, get_user_cooldown_reduction
 from core.reminder_service import ReminderService, CooldownConfig
 
+# If True, confirmation UIs are only visible to the clicker (Discord ephemeral messages).
+# Set to False to make confirmations visible in-channel.
+EPHEMERAL_CONFIRMATIONS: bool = False
+
 # Cache last ephemeral message ID per (user_id, channel_id) so we can try to delete it
 # when the user sets another reminder (reduces clutter). Discord may not allow deleting
 # ephemeral messages via API; we try and ignore errors.
@@ -100,6 +104,8 @@ async def get_user_role_emoji(user: Union[discord.User, discord.Member], guild: 
 
 async def _try_delete_last_ephemeral(interaction: discord.Interaction) -> None:
     """Try to delete the last ephemeral message we sent to this user in this channel."""
+    if not EPHEMERAL_CONFIRMATIONS:
+        return
     key = (interaction.user.id, interaction.channel_id)
     if key not in _last_ephemeral:
         return
@@ -227,14 +233,15 @@ async def handle_panel_click(
 
         await interaction.response.send_message(
             success_message,
-            ephemeral=True
+            ephemeral=EPHEMERAL_CONFIRMATIONS
         )
-        try:
-            orig = await interaction.original_response()
-            if orig and getattr(orig, "id", None):
-                _last_ephemeral[(interaction.user.id, interaction.channel_id)] = orig.id
-        except Exception:
-            pass
+        if EPHEMERAL_CONFIRMATIONS:
+            try:
+                orig = await interaction.original_response()
+                if orig and getattr(orig, "id", None):
+                    _last_ephemeral[(interaction.user.id, interaction.channel_id)] = orig.id
+            except Exception:
+                pass
         
         print(f"{panel_name}: {interaction.user.name} set reminder for {item_key} - reminder on {reminder_time_str} ({cooldown_str})")
         
@@ -305,14 +312,15 @@ class ReminderActionView(View):
             await _try_delete_last_ephemeral(interaction)
             await interaction.response.send_message(
                 f"❌ Reminder for {self.item_emoji} **{self.reminder_item_name}** has been cancelled.",
-                ephemeral=True
+                ephemeral=EPHEMERAL_CONFIRMATIONS
             )
-            try:
-                orig = await interaction.original_response()
-                if orig and getattr(orig, "id", None):
-                    _last_ephemeral[(interaction.user.id, interaction.channel_id)] = orig.id
-            except Exception:
-                pass
+            if EPHEMERAL_CONFIRMATIONS:
+                try:
+                    orig = await interaction.original_response()
+                    if orig and getattr(orig, "id", None):
+                        _last_ephemeral[(interaction.user.id, interaction.channel_id)] = orig.id
+                except Exception:
+                    pass
 
             print(f"[{self.panel_name}] {interaction.user.name} cancelled reminder for {self.item_key}")
             
@@ -369,14 +377,15 @@ class ReminderActionView(View):
             )
             await interaction.response.send_message(
                 success_message,
-                ephemeral=True
+                ephemeral=EPHEMERAL_CONFIRMATIONS
             )
-            try:
-                orig = await interaction.original_response()
-                if orig and getattr(orig, "id", None):
-                    _last_ephemeral[(interaction.user.id, interaction.channel_id)] = orig.id
-            except Exception:
-                pass
+            if EPHEMERAL_CONFIRMATIONS:
+                try:
+                    orig = await interaction.original_response()
+                    if orig and getattr(orig, "id", None):
+                        _last_ephemeral[(interaction.user.id, interaction.channel_id)] = orig.id
+                except Exception:
+                    pass
 
             print(f"[{self.panel_name}] {interaction.user.name} reset reminder for {self.item_key}")
             
@@ -438,14 +447,15 @@ async def show_reminder_exists_prompt(
         await interaction.response.send_message(
             message_template,
             view=view,
-            ephemeral=True
+            ephemeral=EPHEMERAL_CONFIRMATIONS
         )
-        try:
-            orig = await interaction.original_response()
-            if orig and getattr(orig, "id", None):
-                _last_ephemeral[(interaction.user.id, interaction.channel_id)] = orig.id
-        except Exception:
-            pass
+        if EPHEMERAL_CONFIRMATIONS:
+            try:
+                orig = await interaction.original_response()
+                if orig and getattr(orig, "id", None):
+                    _last_ephemeral[(interaction.user.id, interaction.channel_id)] = orig.id
+            except Exception:
+                pass
         
     except Exception as e:
         await interaction.response.send_message(
