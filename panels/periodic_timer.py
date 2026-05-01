@@ -3,11 +3,14 @@ import discord
 from discord.ext import commands
 from core.config_service import (
     toggle_user_timer_flag,
+    is_user_timer_enabled,
     clear_panel_message,
     get_panel_message,
     get_restore_delay,
     save_panel_message
 )
+
+PANEL_BUTTON_MESSAGE_DELETE_AFTER = 15
 
 # ===========================================================================
 # ========================= STORAGE SETUP =========================
@@ -56,7 +59,7 @@ class PeriodicTimerView(discord.ui.View):
             value=(
                 "`XX:00` → 🐣 Mondo Chick\n"
                 "`XX:15 and XX:45` → <:sticker_puffshroom:1468791392816988293> Puffshroom\n\n"
-                "**Remind 1 Minute Early**: Get pinged 1 minute before the mark"
+                "**Remind Early**: Get pinged 1–2 minutes before the mark"
             ),
             inline=False
         )
@@ -77,15 +80,23 @@ class PeriodicTimerView(discord.ui.View):
 
             message = f"{ '✅' if new_state else '❌' } Mondo Timer is {status}"
             if new_state:
-              message += "\n⏱️ You'll be pinged on every :00 minute mark."
+                if is_user_timer_enabled(interaction.user.id, "remind_2min_early"):
+                    message += "\n⏱️ You'll be pinged on every **:58** minute mark."
+                elif is_user_timer_enabled(interaction.user.id, "remind_1min_early"):
+                    message += "\n⏱️ You'll be pinged on every **:59** minute mark."
+                else:
+                    message += "\n⏱️ You'll be pinged on every **:00** minute mark."
 
             await interaction.response.send_message(
                 message,
-                ephemeral=True
+                delete_after=PANEL_BUTTON_MESSAGE_DELETE_AFTER
             )
             print(f"Periodic timer: {interaction.user.name} toggled Mondo Timer -> {new_state}")
         except Exception as e:
-            await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
+            await interaction.response.send_message(
+                f"❌ Error: {e}",
+                delete_after=PANEL_BUTTON_MESSAGE_DELETE_AFTER
+            )
     # ====================================================================
     @discord.ui.button(
         label="Puffshroom",
@@ -100,15 +111,23 @@ class PeriodicTimerView(discord.ui.View):
 
             message = f"{ '✅' if new_state else '❌' } Puffshroom Timer is {status}"
             if new_state:
-              message += "\n⏱️ You'll be pinged on every :15 and :45 minute mark."
+                if is_user_timer_enabled(interaction.user.id, "remind_2min_early"):
+                    message += "\n⏱️ You'll be pinged on every **:13** and **:43** minute mark."
+                elif is_user_timer_enabled(interaction.user.id, "remind_1min_early"):
+                    message += "\n⏱️ You'll be pinged on every **:14** and **:44** minute mark."
+                else:
+                    message += "\n⏱️ You'll be pinged on every **:15** and **:45** minute mark."
 
             await interaction.response.send_message(
                 message,
-                ephemeral=True
+                delete_after=PANEL_BUTTON_MESSAGE_DELETE_AFTER
             )
             print(f"Periodic timer: {interaction.user.name} toggled Puffshroom Timer -> {new_state}")
         except Exception as e:
-            await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
+            await interaction.response.send_message(
+                f"❌ Error: {e}",
+                delete_after=PANEL_BUTTON_MESSAGE_DELETE_AFTER
+            )
 
     #? ------------------------ Row 1: Remind 1 Minute Early -------------------------
     @discord.ui.button(
@@ -123,12 +142,47 @@ class PeriodicTimerView(discord.ui.View):
             status = "enabled" if new_state else "disabled"
             message = (
                 f"{'✅' if new_state else '❌'} **Remind 1 Minute Early** is {status}.\n"
-                "When enabled: Mondo pings at **:59**, Puffshroom at **:14** and **:44**."
+                "When enabled: Mondo pings at **:59**, Puffshroom at **:14** and **:44**.\n"
+                "Note: If **Remind 2 Minutes Early** is enabled, it will take priority."
             )
-            await interaction.response.send_message(message, ephemeral=True)
+            await interaction.response.send_message(
+                message,
+                delete_after=PANEL_BUTTON_MESSAGE_DELETE_AFTER
+            )
             print(f"Periodic timer: {interaction.user.name} toggled Remind 1 Minute Early -> {new_state}")
         except Exception as e:
-            await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
+            await interaction.response.send_message(
+                f"❌ Error: {e}",
+                delete_after=PANEL_BUTTON_MESSAGE_DELETE_AFTER
+            )
+
+
+    #? ------------------------ Row 1: Remind 2 Minutes Early -------------------------
+    @discord.ui.button(
+        label="Remind 2 Minutes Early",
+        style=discord.ButtonStyle.primary,
+        custom_id="periodic_timer:remind_2min_early",
+        row=1
+    )
+    async def remind_2min_early_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        try:
+            new_state = toggle_user_timer_flag(interaction.user.id, "remind_2min_early")
+            status = "enabled" if new_state else "disabled"
+            message = (
+                f"{'✅' if new_state else '❌'} **Remind 2 Minutes Early** is {status}.\n"
+                "When enabled: Mondo pings at **:58**, Puffshroom at **:13** and **:43**.\n"
+                "Note: This setting takes priority over **Remind 1 Minute Early**."
+            )
+            await interaction.response.send_message(
+                message,
+                delete_after=PANEL_BUTTON_MESSAGE_DELETE_AFTER
+            )
+            print(f"Periodic timer: {interaction.user.name} toggled Remind 2 Minutes Early -> {new_state}")
+        except Exception as e:
+            await interaction.response.send_message(
+                f"❌ Error: {e}",
+                delete_after=PANEL_BUTTON_MESSAGE_DELETE_AFTER
+            )
 
 
 # ===========================================================================

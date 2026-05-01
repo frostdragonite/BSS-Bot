@@ -402,11 +402,15 @@ class ReminderChecker(commands.Cog):
                             "mondo_timer": {"emoji": "🐣", "name": "Mondo Timer"},
                             "puffshroom_timer": {"emoji": "<:sticker_puffshroom:1468791392816988293>", "name": "Puffshroom Timer"}
                         }
-                        early_user_ids = set(get_users_with_timer_flag("remind_1min_early"))
+                        early_2_user_ids = set(get_users_with_timer_flag("remind_2min_early"))
+                        early_1_user_ids = set(get_users_with_timer_flag("remind_1min_early")) - early_2_user_ids
 
-                        # Mondo: :00 for normal users, :59 for "remind 1 min early" users
+                        # Mondo: :00 normal, :59 for "remind 1 min early", :58 for "remind 2 min early"
                         if minute == 0:
-                            mondo_users = [u for u in get_users_with_timer_flag("mondo_timer") if u not in early_user_ids]
+                            mondo_users = [
+                                u for u in get_users_with_timer_flag("mondo_timer")
+                                if u not in early_1_user_ids and u not in early_2_user_ids
+                            ]
                             if mondo_users:
                                 timer_info = timers["mondo_timer"]
                                 mentions = " ".join([f"<@{user_id}>" for user_id in mondo_users])
@@ -416,7 +420,7 @@ class ReminderChecker(commands.Cog):
                                     f"{mentions}"
                                 )
                         if minute == 59:
-                            mondo_users = [u for u in get_users_with_timer_flag("mondo_timer") if u in early_user_ids]
+                            mondo_users = [u for u in get_users_with_timer_flag("mondo_timer") if u in early_1_user_ids]
                             if mondo_users:
                                 timer_info = timers["mondo_timer"]
                                 mentions = " ".join([f"<@{user_id}>" for user_id in mondo_users])
@@ -425,10 +429,23 @@ class ReminderChecker(commands.Cog):
                                     f"🔔 <t:{unix_timestamp}:t> - {timer_info['emoji']} **{timer_info['name']}** (1 min early) timer is ready!\n"
                                     f"{mentions}"
                                 )
+                        if minute == 58:
+                            mondo_users = [u for u in get_users_with_timer_flag("mondo_timer") if u in early_2_user_ids]
+                            if mondo_users:
+                                timer_info = timers["mondo_timer"]
+                                mentions = " ".join([f"<@{user_id}>" for user_id in mondo_users])
+                                unix_timestamp = int(current_time.timestamp())
+                                await channel.send(
+                                    f"🔔 <t:{unix_timestamp}:t> - {timer_info['emoji']} **{timer_info['name']}** (2 min early) timer is ready!\n"
+                                    f"{mentions}"
+                                )
 
-                        # Puffshroom: :15 and :45 for normal users, :14 and :44 for "remind 1 min early" users
+                        # Puffshroom: :15/:45 normal, :14/:44 for "remind 1 min early", :13/:43 for "remind 2 min early"
                         if minute in (15, 45):
-                            puff_users = [u for u in get_users_with_timer_flag("puffshroom_timer") if u not in early_user_ids]
+                            puff_users = [
+                                u for u in get_users_with_timer_flag("puffshroom_timer")
+                                if u not in early_1_user_ids and u not in early_2_user_ids
+                            ]
                             if puff_users:
                                 timer_info = timers["puffshroom_timer"]
                                 mentions = " ".join([f"<@{user_id}>" for user_id in puff_users])
@@ -438,13 +455,23 @@ class ReminderChecker(commands.Cog):
                                     f"{mentions}"
                                 )
                         if minute in (14, 44):
-                            puff_users = [u for u in get_users_with_timer_flag("puffshroom_timer") if u in early_user_ids]
+                            puff_users = [u for u in get_users_with_timer_flag("puffshroom_timer") if u in early_1_user_ids]
                             if puff_users:
                                 timer_info = timers["puffshroom_timer"]
                                 mentions = " ".join([f"<@{user_id}>" for user_id in puff_users])
                                 unix_timestamp = int(current_time.timestamp())
                                 await channel.send(
                                     f"🔔 <t:{unix_timestamp}:t> - {timer_info['emoji']} **{timer_info['name']}** (1 min early) timer is ready!\n"
+                                    f"{mentions}"
+                                )
+                        if minute in (13, 43):
+                            puff_users = [u for u in get_users_with_timer_flag("puffshroom_timer") if u in early_2_user_ids]
+                            if puff_users:
+                                timer_info = timers["puffshroom_timer"]
+                                mentions = " ".join([f"<@{user_id}>" for user_id in puff_users])
+                                unix_timestamp = int(current_time.timestamp())
+                                await channel.send(
+                                    f"🔔 <t:{unix_timestamp}:t> - {timer_info['emoji']} **{timer_info['name']}** (2 min early) timer is ready!\n"
                                     f"{mentions}"
                                 )
 

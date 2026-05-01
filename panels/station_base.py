@@ -28,6 +28,7 @@ COOLDOWN_MAP = {
     "meteor": CooldownConfig(hours=22),
     "shrine": CooldownConfig(hours=1),
     "printer": CooldownConfig(hours=1),
+    "booster": CooldownConfig(minutes=45),
     "coconut_dispenser": CooldownConfig(hours=4),
     "glue_dispenser": CooldownConfig(hours=22),
     "ant_dispenser": CooldownConfig(hours=2),
@@ -88,7 +89,8 @@ class StationBaseView(discord.ui.View):
             name="\u200b",
             value=(
                 "`1 Hour` → <:item_spiritpetal:1465024160467255347> Wind Shrine\n"
-                "`1 Hour` → 🖨️ Sticker Printer"
+                "`1 Hour` → 🖨️ Sticker Printer\n"
+                "`45 Minutes` → <:item_loadeddice:1464852480851706060> Booster"
             ),
             inline=False
         )
@@ -176,7 +178,7 @@ class StationBaseView(discord.ui.View):
         )
     # ====================================================================
 
-    #? ------------------------ Row 2: 2 buttons -------------------------
+    #? ------------------------ Row 2: 3 buttons -------------------------
     @discord.ui.button(
         label="Wind Shrine",
         emoji=discord.PartialEmoji(name="item_spiritpetal", id=1465024160467255347),
@@ -209,6 +211,23 @@ class StationBaseView(discord.ui.View):
             reminder_service=reminder_service,
             panel_name=PANEL_NAME,
             reminder_item_name="Sticker Printer",
+        )
+    # ====================================================================
+    @discord.ui.button(
+        label="Field Booster",
+        emoji=discord.PartialEmoji(name="item_loadeddice", id=1464852480851706060),
+        custom_id="station_base:field_booster",
+        row=1
+    )
+    async def field_booster_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await handle_panel_click(
+            interaction=interaction,
+            item_key="booster",
+            item_emoji="<:item_loadeddice:1464852480851706060>",
+            cooldown_map=COOLDOWN_MAP,
+            reminder_service=reminder_service,
+            panel_name=PANEL_NAME,
+            reminder_item_name="Field Booster",
         )
     # ====================================================================
 

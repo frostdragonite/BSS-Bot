@@ -219,7 +219,7 @@ class PlanterSwirledView(discord.ui.View):
 
     #? --------------- Row 3: 3 buttons ---------------
     @discord.ui.button(
-        label="heat",
+        label="Heat-Treated",
         emoji=discord.PartialEmoji(name="planter_heattreated", id=1462393789447536862),
         custom_id="planter_swirled:heat",
         row=2
@@ -227,7 +227,7 @@ class PlanterSwirledView(discord.ui.View):
     async def swirled_heat_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await handle_panel_click(
             interaction=interaction,
-            item_key="Heat-Treated",
+            item_key="heat",
             item_emoji="<:planter_heattreated:1462393789447536862>",
             cooldown_map=COOLDOWN_MAP,
             reminder_service=reminder_service,
