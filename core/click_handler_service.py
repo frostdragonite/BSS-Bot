@@ -9,6 +9,9 @@ from core.reminder_service import ReminderService, CooldownConfig
 # Set to False to make confirmations visible in-channel.
 EPHEMERAL_CONFIRMATIONS: bool = False
 
+# Auto-delete confirmation messages after this many seconds (only applies when not ephemeral).
+PANEL_BUTTON_MESSAGE_DELETE_AFTER: int = 15
+
 # Cache last ephemeral message ID per (user_id, channel_id) so we can try to delete it
 # when the user sets another reminder (reduces clutter). Discord may not allow deleting
 # ephemeral messages via API; we try and ignore errors.
@@ -233,7 +236,8 @@ async def handle_panel_click(
 
         await interaction.response.send_message(
             success_message,
-            ephemeral=EPHEMERAL_CONFIRMATIONS
+            ephemeral=EPHEMERAL_CONFIRMATIONS,
+            delete_after=None if EPHEMERAL_CONFIRMATIONS else PANEL_BUTTON_MESSAGE_DELETE_AFTER
         )
         if EPHEMERAL_CONFIRMATIONS:
             try:
@@ -312,7 +316,8 @@ class ReminderActionView(View):
             await _try_delete_last_ephemeral(interaction)
             await interaction.response.send_message(
                 f"❌ Reminder for {self.item_emoji} **{self.reminder_item_name}** has been cancelled.",
-                ephemeral=EPHEMERAL_CONFIRMATIONS
+                ephemeral=EPHEMERAL_CONFIRMATIONS,
+                delete_after=None if EPHEMERAL_CONFIRMATIONS else PANEL_BUTTON_MESSAGE_DELETE_AFTER
             )
             if EPHEMERAL_CONFIRMATIONS:
                 try:
@@ -377,7 +382,8 @@ class ReminderActionView(View):
             )
             await interaction.response.send_message(
                 success_message,
-                ephemeral=EPHEMERAL_CONFIRMATIONS
+                ephemeral=EPHEMERAL_CONFIRMATIONS,
+                delete_after=None if EPHEMERAL_CONFIRMATIONS else PANEL_BUTTON_MESSAGE_DELETE_AFTER
             )
             if EPHEMERAL_CONFIRMATIONS:
                 try:
@@ -447,7 +453,8 @@ async def show_reminder_exists_prompt(
         await interaction.response.send_message(
             message_template,
             view=view,
-            ephemeral=EPHEMERAL_CONFIRMATIONS
+            ephemeral=EPHEMERAL_CONFIRMATIONS,
+            delete_after=None if EPHEMERAL_CONFIRMATIONS else PANEL_BUTTON_MESSAGE_DELETE_AFTER
         )
         if EPHEMERAL_CONFIRMATIONS:
             try:
